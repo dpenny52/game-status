@@ -13,4 +13,4 @@ Features include real-time status updates, a favorites system, and email alerts 
 
 ## Purpose
 
-This project is being developed to test the [Agent OS](https://github.com/anthropics/agent-os) tool for AI-assisted software development workflows.
+This project is being developed to test the [Agent OS](https://github.com/buildermethods/agent-os) tool for AI-assisted software development workflows.
