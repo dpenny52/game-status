@@ -1,0 +1,17 @@
+{
+  "name": "gamestatus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "convex": "^1.17.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.0"
+  }
+}

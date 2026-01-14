@@ -1,0 +1,13 @@
+task_groups:
+  - name: Schema Setup and Enum Definitions
+    claude_code_subagent: backend-specialist
+  - name: Games Table
+    claude_code_subagent: backend-specialist
+  - name: Users Table
+    claude_code_subagent: backend-specialist
+  - name: Server Status Tables
+    claude_code_subagent: backend-specialist
+  - name: Favorites and Alert Subscriptions Tables
+    claude_code_subagent: backend-specialist
+  - name: Schema Integration and Final Validation
+    claude_code_subagent: backend-specialist
