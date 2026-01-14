@@ -16,9 +16,7 @@
 
 8. [ ] Auto-Refresh and Real-Time Updates — Implement automatic dashboard refresh and real-time status updates using Convex subscriptions so users see changes without manual refresh `S`
 
-9. [ ] Status History Display — Show recent status history for each game so users can see patterns in outages and maintenance windows `S`
-
-10. [ ] Mobile-Responsive Design — Ensure the dashboard is fully responsive and usable on mobile devices for checking status on the go `S`
+9. [ ] Mobile-Responsive Design — Ensure the dashboard is fully responsive and usable on mobile devices for checking status on the go `S`
 
 > Notes
 > - Order items by technical dependencies and product architecture

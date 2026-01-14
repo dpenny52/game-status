@@ -48,11 +48,13 @@ Define the Convex database schema for GameStatus, establishing the foundational 
 - Enforce uniqueness on user-game combination to prevent duplicates
 
 **Alert Subscriptions Table**
-- Store user preferences for email notifications per game
+- Store user preferences for email notifications per game and region
 - Reference user and game via foreign keys
+- Include region field to subscribe to specific regional server alerts (using region enum)
 - Track subscription status (isActive boolean for pause/resume)
-- Store when alert was last sent to implement rate limiting
+- Store when alert was last sent to implement rate limiting (lastAlertSentAt)
 - Include created timestamp for auditing subscription history
+- Enforce uniqueness on user+game+region combination to prevent duplicates
 
 **Status Enum Definition**
 - Define status as union type: "online" | "offline" | "degraded" | "maintenance" | "unknown"
@@ -85,6 +87,8 @@ Define the Convex database schema for GameStatus, establishing the foundational 
 - Index statusHistory on gameId and timestamp for historical queries
 - Index favorites on userId for loading user's favorites list
 - Index alertSubscriptions on userId and isActive for notification processing
+- Index alertSubscriptions on gameId and region for finding subscribers when status changes
+- Compound index on alertSubscriptions (userId, gameId, region) for uniqueness enforcement
 - Compound index on favorites (userId, gameId) for uniqueness enforcement
 
 **Convex Real-Time Considerations**
