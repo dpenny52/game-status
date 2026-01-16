@@ -2,7 +2,8 @@
  * GameCard Component
  *
  * Displays a game card with icon, name, platform, status indicator,
- * timestamps, regional status breakdown, favorite toggle, and subscription toggle.
+ * timestamps, regional status breakdown, favorite toggle, subscription toggle,
+ * and real-time status change animations.
  *
  * @module GameCard
  */
@@ -12,6 +13,7 @@ import { RegionalStatus, type RegionStatus, type Region } from "../RegionalStatu
 import { FavoriteToggle } from "../FavoriteToggle";
 import { SubscriptionToggle } from "../SubscriptionToggle";
 import { useRelativeTime } from "../../hooks/useRelativeTime";
+import { useStatusChangeAnimation } from "../../hooks/useStatusChangeAnimation";
 import { isStale } from "../../utils/timeFormat";
 import { useAuth } from "../../hooks/useAuth";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -98,6 +100,12 @@ function isDownStatus(status: Status): boolean {
 /**
  * GameCard displays a game with its status and related information.
  *
+ * Features:
+ * - Real-time status updates via Convex subscriptions
+ * - Status change animation (pulse effect when status changes)
+ * - Auto-updating relative timestamps
+ * - Stale data indicator when data is > 10 minutes old
+ *
  * @example
  * ```tsx
  * <GameCard
@@ -136,6 +144,10 @@ export function GameCard({
     [statusRecords]
   );
 
+  // Track status changes for animation
+  // Animation triggers when status changes (except on initial render)
+  const { isAnimating } = useStatusChangeAnimation(primaryStatus);
+
   // Get the most recent check time
   const lastCheckedAt = useMemo(() => {
     if (statusRecords.length === 0) return null;
@@ -157,12 +169,13 @@ export function GameCard({
     return recordWithMessage?.statusMessage;
   }, [statusRecords]);
 
-  // Format timestamps
+  // Format timestamps with auto-updating relative time
   const lastCheckedTime = useRelativeTime(lastCheckedAt);
   const downSinceTime = useRelativeTime(statusChangedAt);
 
-  // Check if data is stale
-  const dataIsStale = lastCheckedAt ? isStale(lastCheckedAt) : false;
+  // Check if data is stale (> 10 minutes old by default)
+  // Uses the threshold from isStale utility (default 5 min, we use 10 min per spec)
+  const dataIsStale = lastCheckedAt ? isStale(lastCheckedAt, 10) : false;
 
   // Convert status records to region status format
   const regionStatuses: RegionStatus[] = useMemo(() => {
@@ -178,11 +191,12 @@ export function GameCard({
   // Determine if favorites/subscriptions UI should be shown
   const showAuthenticatedUI = isAuthenticated && gameId;
 
-  // Build class names including favorited state
+  // Build class names including status change animation
   const cardClassNames = [
     "game-card",
     `game-card-status-${primaryStatus}`,
     dataIsStale ? "game-card-stale" : "",
+    isAnimating ? "game-card-status-changed" : "",
     showAuthenticatedUI && isFavorited ? "game-card-favorited" : "",
     className,
   ]
@@ -193,6 +207,9 @@ export function GameCard({
     <article
       className={cardClassNames}
       data-testid="game-card"
+      data-status={primaryStatus}
+      data-stale={dataIsStale ? "true" : undefined}
+      data-animating={isAnimating ? "true" : undefined}
     >
       {/* Favorite toggle in top-left corner */}
       {showAuthenticatedUI && (

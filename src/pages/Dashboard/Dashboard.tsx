@@ -3,7 +3,7 @@
  *
  * The main entry point of the application that displays all supported games
  * with their current server status organized by platform. Supports favorites
- * sorting for authenticated users.
+ * sorting for authenticated users and real-time updates via Convex subscriptions.
  *
  * @module Dashboard
  */
@@ -11,6 +11,7 @@ import React, { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../hooks/useAuth";
+import { useRelativeTime } from "../../hooks/useRelativeTime";
 import {
   PlatformSection,
   type Platform,
@@ -18,7 +19,7 @@ import {
 } from "../../components/PlatformSection";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { EmptyState } from "../../components/EmptyState";
-import { formatTime } from "../../utils/timeFormat";
+import { ConnectionHealthIndicator } from "../../components/ConnectionHealthIndicator";
 import "./Dashboard.css";
 
 /**
@@ -59,6 +60,13 @@ function groupByPlatform(
 /**
  * Dashboard displays all game server statuses organized by platform.
  *
+ * Features:
+ * - Real-time updates via Convex subscriptions (no manual refresh needed)
+ * - Connection health indicator showing Convex connection status
+ * - Auto-updating relative timestamps
+ * - Status change animations on individual game cards
+ * - Stale data indicators when data exceeds 10-minute threshold
+ *
  * For authenticated users:
  * - Uses getAllGamesWithStatusAndFavorites query for favorites sorting
  * - Favorites appear first (alphabetically) within each platform section
@@ -80,7 +88,8 @@ export function Dashboard(): JSX.Element {
   // Get auth state to determine which query to use
   const { isAuthenticated } = useAuth();
 
-  // Fetch games with status - use favorites-aware query for authenticated users
+  // Fetch games with status - Convex useQuery provides automatic reactivity
+  // Data automatically updates when serverStatusRecords table changes
   const gamesWithStatusAndFavorites = useQuery(
     api.queries.getAllGamesWithStatusAndFavorites
   );
@@ -113,15 +122,24 @@ export function Dashboard(): JSX.Element {
     return mostRecent > 0 ? mostRecent : null;
   }, [gamesWithStatus]);
 
+  // Use auto-updating relative time for footer
+  const lastRefreshTimeFormatted = useRelativeTime(lastRefreshTime);
+
   // Render loading state
   if (gamesWithStatus === undefined) {
     return (
       <div className="dashboard">
         <header className="dashboard-header">
-          <h1 className="dashboard-brand">GameStatus</h1>
-          <p className="dashboard-tagline">
-            Real-time game server status monitoring
-          </p>
+          <div className="dashboard-header-content">
+            <h1 className="dashboard-brand">GameStatus</h1>
+            <p className="dashboard-tagline">
+              Real-time game server status monitoring
+            </p>
+          </div>
+          <ConnectionHealthIndicator
+            className="dashboard-connection-indicator"
+            data-testid="connection-health-indicator"
+          />
         </header>
         <main className="dashboard-main">
           <div className="dashboard-loading" role="status" aria-label="Loading">
@@ -147,10 +165,16 @@ export function Dashboard(): JSX.Element {
     return (
       <div className="dashboard">
         <header className="dashboard-header">
-          <h1 className="dashboard-brand">GameStatus</h1>
-          <p className="dashboard-tagline">
-            Real-time game server status monitoring
-          </p>
+          <div className="dashboard-header-content">
+            <h1 className="dashboard-brand">GameStatus</h1>
+            <p className="dashboard-tagline">
+              Real-time game server status monitoring
+            </p>
+          </div>
+          <ConnectionHealthIndicator
+            className="dashboard-connection-indicator"
+            data-testid="connection-health-indicator"
+          />
         </header>
         <main className="dashboard-main">
           <EmptyState
@@ -176,10 +200,16 @@ export function Dashboard(): JSX.Element {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1 className="dashboard-brand">GameStatus</h1>
-        <p className="dashboard-tagline">
-          Real-time game server status monitoring
-        </p>
+        <div className="dashboard-header-content">
+          <h1 className="dashboard-brand">GameStatus</h1>
+          <p className="dashboard-tagline">
+            Real-time game server status monitoring
+          </p>
+        </div>
+        <ConnectionHealthIndicator
+          className="dashboard-connection-indicator"
+          data-testid="connection-health-indicator"
+        />
       </header>
 
       <main className="dashboard-main">
@@ -201,7 +231,7 @@ export function Dashboard(): JSX.Element {
       <footer className="dashboard-footer">
         {lastRefreshTime && (
           <p className="footer-timestamp">
-            Last updated: {formatTime(lastRefreshTime)}
+            Last updated: {lastRefreshTimeFormatted}
           </p>
         )}
         <p className="footer-attribution">

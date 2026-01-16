@@ -1,0 +1,13 @@
+/**
+ * RelativeTime Component Styles
+ *
+ * Minimal styling for the relative time display component.
+ */
+
+.relative-time {
+  /* Inherit font properties from parent for flexibility */
+  font: inherit;
+  color: inherit;
+  /* Prevent text wrapping for clean inline display */
+  white-space: nowrap;
+}

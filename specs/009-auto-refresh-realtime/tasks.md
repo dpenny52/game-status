@@ -12,26 +12,26 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 1: RelativeTime Component
 **Dependencies:** None
 
-- [ ] 1.0 Complete RelativeTime component
-  - [ ] 1.1 Write 2-6 focused tests for RelativeTime functionality
+- [x] 1.0 Complete RelativeTime component
+  - [x] 1.1 Write 2-6 focused tests for RelativeTime functionality
     - Test "just now" display for timestamps under 1 minute old
     - Test relative format ("1 minute ago", "5 minutes ago") for recent timestamps
     - Test absolute format for timestamps older than 24 hours
     - Test graceful handling of null/undefined timestamps
     - Test auto-update behavior via interval (mock timers)
-  - [ ] 1.2 Create RelativeTime component with timestamp formatting
+  - [x] 1.2 Create RelativeTime component with timestamp formatting
     - Accept timestamp prop (number or null/undefined)
     - Format "just now" for < 1 minute
     - Format "X minutes ago" for 1-59 minutes
     - Format "X hours ago" for 1-23 hours
     - Format absolute date ("Jan 14, 2:30 PM") for > 24 hours
     - Return fallback text for null/undefined values
-  - [ ] 1.3 Implement client-side auto-update interval
+  - [x] 1.3 Implement client-side auto-update interval
     - Set up useEffect with setInterval (30-60 seconds)
     - Force re-render to update displayed time
     - Clean up interval on component unmount
     - Avoid memory leaks with proper cleanup
-  - [ ] 1.4 Ensure RelativeTime tests pass
+  - [x] 1.4 Ensure RelativeTime tests pass
     - Run ONLY the 2-6 tests written in 1.1
     - Verify all time formatting cases work correctly
 
@@ -47,26 +47,26 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 2: ConnectionHealthIndicator Component
 **Dependencies:** None (can be built in parallel with Task Group 1)
 
-- [ ] 2.0 Complete ConnectionHealthIndicator component
-  - [ ] 2.1 Write 2-5 focused tests for ConnectionHealthIndicator
+- [x] 2.0 Complete ConnectionHealthIndicator component
+  - [x] 2.1 Write 2-5 focused tests for ConnectionHealthIndicator
     - Test green dot/connected state display
     - Test yellow dot/reconnecting state display
     - Test red dot/disconnected state display
     - Test accessible label/tooltip presence
-  - [ ] 2.2 Create ConnectionHealthIndicator component
+  - [x] 2.2 Create ConnectionHealthIndicator component
     - Use Convex connection state APIs (ConvexReactClient status)
     - Display small visual indicator (dot or icon)
     - Green = connected, Yellow = reconnecting, Red = disconnected
     - Position for header or footer placement (flexible via props)
-  - [ ] 2.3 Add accessible text label or tooltip
+  - [x] 2.3 Add accessible text label or tooltip
     - Include screen reader accessible description
     - Tooltip showing connection state on hover
     - ARIA attributes for accessibility compliance
-  - [ ] 2.4 Style the indicator
+  - [x] 2.4 Style the indicator
     - Small, non-intrusive visual size
     - Smooth color transitions between states
     - Consistent with existing dashboard design system
-  - [ ] 2.5 Ensure ConnectionHealthIndicator tests pass
+  - [x] 2.5 Ensure ConnectionHealthIndicator tests pass
     - Run ONLY the 2-5 tests written in 2.1
     - Verify all connection states display correctly
 
@@ -81,33 +81,33 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 3: Status Change Animation and Stale Data Styles
 **Dependencies:** None (can be built in parallel with Task Groups 1-2)
 
-- [ ] 3.0 Complete status change animation and stale data styles
-  - [ ] 3.1 Write 2-6 focused tests for animation and stale logic
+- [x] 3.0 Complete status change animation and stale data styles
+  - [x] 3.1 Write 2-6 focused tests for animation and stale logic
     - Test animation class applied when status changes
     - Test animation not applied on initial render (no previous status)
     - Test animation removed after duration completes
     - Test stale data class applied when lastCheckedAt > 10 minutes old
     - Test stale indicator cleared when fresh data arrives
-  - [ ] 3.2 Create useStatusChangeAnimation custom hook
+  - [x] 3.2 Create useStatusChangeAnimation custom hook
     - Track previous status value in component state (useRef or useState)
     - Detect when status changes between renders
     - Return boolean indicating animation should be active
     - Auto-clear animation state after 500-800ms timeout
-  - [ ] 3.3 Implement CSS animation styles
+  - [x] 3.3 Implement CSS animation styles
     - Define pulse/glow keyframe animation
     - Duration: 500-800ms
     - Subtle effect (border flash or background glow)
     - Animation class that can be conditionally applied
-  - [ ] 3.4 Create useStaleData custom hook
+  - [x] 3.4 Create useStaleData custom hook
     - Compare current time against lastCheckedAt timestamp
     - Return boolean for stale state (> 10 minutes threshold)
     - Update on interval to detect staleness over time
     - Handle null/undefined lastCheckedAt gracefully
-  - [ ] 3.5 Implement stale data visual styles
+  - [x] 3.5 Implement stale data visual styles
     - Muted colors or opacity reduction for stale cards
     - Warning badge or icon option
     - CSS class that can be conditionally applied
-  - [ ] 3.6 Ensure animation and stale data tests pass
+  - [x] 3.6 Ensure animation and stale data tests pass
     - Run ONLY the 2-6 tests written in 3.1
     - Verify animation triggers correctly on status change
     - Verify stale detection works with threshold
@@ -126,33 +126,33 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 4: GameCard Integration
 **Dependencies:** Task Groups 1, 2, 3
 
-- [ ] 4.0 Complete GameCard integration with real-time features
-  - [ ] 4.1 Write 2-6 focused tests for integrated GameCard behavior
+- [x] 4.0 Complete GameCard integration with real-time features
+  - [x] 4.1 Write 2-6 focused tests for integrated GameCard behavior
     - Test GameCard displays RelativeTime for lastCheckedAt
     - Test GameCard applies animation class on status change
     - Test GameCard applies stale styling when data is old
     - Test GameCard updates when Convex subscription triggers re-render
-  - [ ] 4.2 Integrate RelativeTime component into GameCard
+  - [x] 4.2 Integrate RelativeTime component into GameCard
     - Replace existing timestamp display with RelativeTime component
     - Pass lastCheckedAt as timestamp prop
     - Ensure consistent placement in card layout
-  - [ ] 4.3 Integrate useStatusChangeAnimation into GameCard
+  - [x] 4.3 Integrate useStatusChangeAnimation into GameCard
     - Apply animation hook with status prop
     - Conditionally add animation CSS class to card element
     - Ensure animation applies only to individual card, not siblings
-  - [ ] 4.4 Integrate useStaleData into GameCard
+  - [x] 4.4 Integrate useStaleData into GameCard
     - Apply stale hook with lastCheckedAt prop
     - Conditionally add stale styling CSS class
     - Display last update timestamp for user awareness
-  - [ ] 4.5 Verify Convex useQuery reactivity preserved
+  - [x] 4.5 Verify Convex useQuery reactivity preserved
     - Confirm existing dashboard queries trigger re-renders on data changes
     - No additional polling or WebSocket setup needed
     - Test that serverStatusRecords updates propagate to UI
-  - [ ] 4.6 Remove any manual refresh functionality
+  - [x] 4.6 Remove any manual refresh functionality
     - Remove refresh button if present from spec 003 implementation
     - Ensure no manual refresh UI exists
     - Rely entirely on Convex subscriptions
-  - [ ] 4.7 Ensure GameCard integration tests pass
+  - [x] 4.7 Ensure GameCard integration tests pass
     - Run ONLY the 2-6 tests written in 4.1
     - Verify all real-time features work together
 
@@ -169,21 +169,21 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 5: Dashboard Layout Integration
 **Dependencies:** Task Group 2, Task Group 4
 
-- [ ] 5.0 Complete dashboard layout integration
-  - [ ] 5.1 Write 2-4 focused tests for dashboard-level integration
+- [x] 5.0 Complete dashboard layout integration
+  - [x] 5.1 Write 2-4 focused tests for dashboard-level integration
     - Test ConnectionHealthIndicator present in header or footer
     - Test multiple GameCards each respond independently to status changes
     - Test dashboard-wide real-time updates via Convex subscription
-  - [ ] 5.2 Add ConnectionHealthIndicator to dashboard layout
+  - [x] 5.2 Add ConnectionHealthIndicator to dashboard layout
     - Position in header or footer area (consistent, non-intrusive)
     - Ensure visibility without blocking content
     - Style to match overall dashboard design
-  - [ ] 5.3 Verify end-to-end real-time behavior
+  - [x] 5.3 Verify end-to-end real-time behavior
     - Confirm Convex subscription updates propagate to all game cards
     - Test that status changes in database trigger UI animations
     - Verify stale indicators appear/clear based on data freshness
     - Test connection indicator responds to Convex connection state
-  - [ ] 5.4 Ensure dashboard integration tests pass
+  - [x] 5.4 Ensure dashboard integration tests pass
     - Run ONLY the 2-4 tests written in 5.1
     - Verify all components work together cohesively
 
@@ -201,26 +201,26 @@ This spec implements automatic dashboard updates using Convex's built-in subscri
 #### Task Group 6: Test Review and Gap Analysis
 **Dependencies:** Task Groups 1-5
 
-- [ ] 6.0 Review existing tests and fill critical gaps only
-  - [ ] 6.1 Review tests from Task Groups 1-5
+- [x] 6.0 Review existing tests and fill critical gaps only
+  - [x] 6.1 Review tests from Task Groups 1-5
     - Review the 2-6 tests from RelativeTime (Task 1.1)
     - Review the 2-5 tests from ConnectionHealthIndicator (Task 2.1)
     - Review the 2-6 tests from Animation/Stale logic (Task 3.1)
     - Review the 2-6 tests from GameCard integration (Task 4.1)
     - Review the 2-4 tests from Dashboard integration (Task 5.1)
     - Total existing tests: approximately 10-27 tests
-  - [ ] 6.2 Analyze test coverage gaps for THIS feature only
+  - [x] 6.2 Analyze test coverage gaps for THIS feature only
     - Identify critical user workflows lacking coverage
     - Focus ONLY on gaps related to real-time update requirements
     - Prioritize end-to-end workflows over unit test gaps
     - Do NOT assess entire application test coverage
-  - [ ] 6.3 Write up to 8 additional strategic tests maximum
+  - [x] 6.3 Write up to 8 additional strategic tests maximum
     - Add tests to fill identified critical gaps only
     - Focus on integration points between components
     - Test edge cases: rapid status changes, connection drops during update
     - Test accessibility: screen reader announcements for status changes
     - Do NOT write comprehensive coverage for all scenarios
-  - [ ] 6.4 Run feature-specific tests only
+  - [x] 6.4 Run feature-specific tests only
     - Run ONLY tests related to this spec's features
     - Expected total: approximately 18-35 tests maximum
     - Do NOT run the entire application test suite

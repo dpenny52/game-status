@@ -11,7 +11,7 @@ import { render, cleanup } from "@testing-library/react";
 import React from "react";
 import { vi } from "vitest";
 
-// Mock Convex and hooks
+// Mock Convex and hooks - include useConvex for ConnectionHealthIndicator
 vi.mock("convex/react", () => ({
   ConvexProvider: ({ children }: { children: React.ReactNode }) => children,
   ConvexReactClient: vi.fn(),
@@ -39,6 +39,7 @@ vi.mock("convex/react", () => ({
     },
   ],
   useMutation: () => vi.fn(),
+  useConvex: vi.fn(() => ({})), // Mock convex client (truthy value = connected)
 }));
 
 vi.mock("../../hooks/useAuth", () => ({

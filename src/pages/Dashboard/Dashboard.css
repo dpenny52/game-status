@@ -1,7 +1,8 @@
 /**
  * Dashboard Page Styles
  *
- * Styling for the main dashboard layout including header, content, and footer.
+ * Styling for the main dashboard layout including header, content, footer,
+ * and connection health indicator.
  * Uses mobile-first approach with breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px)
  *
  * Header behavior: scrolls with page content (not fixed/sticky)
@@ -19,12 +20,20 @@
  * This maximizes viewport space for game cards on mobile
  */
 .dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 1rem;
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
-  text-align: center;
   /* Explicitly NOT fixed or sticky - scrolls with content */
   position: relative;
+}
+
+/* Header content wrapper for brand/tagline */
+.dashboard-header-content {
+  text-align: center;
+  flex: 1;
 }
 
 .dashboard-brand {
@@ -38,6 +47,13 @@
   margin: 0;
   font-size: var(--font-size-min-body, 0.875rem);
   color: #6b7280;
+}
+
+/* Connection health indicator - positioned in header */
+.dashboard-connection-indicator {
+  /* Positioned at the right edge of the header */
+  flex-shrink: 0;
+  margin-left: 0.5rem;
 }
 
 /* Main content - Mobile first (phone) */
@@ -107,6 +123,10 @@
 
   .dashboard-tagline {
     font-size: 1rem;
+  }
+
+  .dashboard-connection-indicator {
+    margin-left: 1rem;
   }
 
   .dashboard-main {

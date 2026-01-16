@@ -14,7 +14,7 @@
 
 7. [ ] Alert Notification Service — Build backend service that detects when a game transitions from offline to online and sends email notifications to subscribed users `M`
 
-8. [ ] Auto-Refresh and Real-Time Updates — Implement automatic dashboard refresh and real-time status updates using Convex subscriptions so users see changes without manual refresh `S`
+8. [x] Auto-Refresh and Real-Time Updates — Implement automatic dashboard refresh and real-time status updates using Convex subscriptions so users see changes without manual refresh `S`
 
 9. [ ] Mobile-Responsive Design — Ensure the dashboard is fully responsive and usable on mobile devices for checking status on the go `S`
 

@@ -1,7 +1,8 @@
 /**
  * Tests for Dashboard Page
  *
- * Tests verify the dashboard renders header, platform sections, and footer.
+ * Tests verify the dashboard renders header, platform sections, footer,
+ * and connection health indicator.
  */
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
@@ -21,10 +22,11 @@ vi.mock("../../hooks/useAuth", () => ({
   }),
 }));
 
-// Mock the Convex useQuery hook
+// Mock the Convex hooks - include useConvex for ConnectionHealthIndicator
 vi.mock("convex/react", () => ({
   useQuery: vi.fn(),
   useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+  useConvex: vi.fn(() => ({})), // Mock convex client (truthy value = connected)
 }));
 
 import { useQuery } from "convex/react";
@@ -122,5 +124,28 @@ describe("Dashboard Page", () => {
     render(<Dashboard />);
 
     expect(screen.getByText(/No games/i)).toBeInTheDocument();
+  });
+
+  it("should display ConnectionHealthIndicator in header", () => {
+    vi.mocked(useQuery).mockReturnValue(mockGamesData);
+
+    render(<Dashboard />);
+
+    // Connection indicator should be visible
+    const connectionIndicator = screen.getByTestId("connection-health-indicator");
+    expect(connectionIndicator).toBeInTheDocument();
+    expect(connectionIndicator).toHaveAttribute("data-status", "connected");
+  });
+
+  it("should display auto-updating last updated timestamp in footer", () => {
+    vi.mocked(useQuery).mockReturnValue(mockGamesData);
+
+    render(<Dashboard />);
+
+    // Footer should show last updated time
+    const footerTimestamp = screen.getByText(/Last updated:/i);
+    expect(footerTimestamp).toBeInTheDocument();
+    // The footer should contain a relative timestamp
+    expect(footerTimestamp.textContent).toContain("1 minute ago");
   });
 });
