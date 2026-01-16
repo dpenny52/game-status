@@ -177,4 +177,119 @@ test.describe("GameStatus Dashboard", () => {
 
     console.log("Test 7 PASSED: Dashboard displays appropriate content/state");
   });
+
+  test.describe("Game Icon Display (Issue #4)", () => {
+    test("8. Game card icons use local static paths", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      // Check for game cards with icons
+      const gameCards = page.locator(".game-card");
+      const cardCount = await gameCards.count();
+
+      if (cardCount > 0) {
+        // Get all game card icons
+        const icons = page.locator(".game-card-icon");
+        const iconCount = await icons.count();
+
+        console.log(`Found ${iconCount} game card icons`);
+
+        // Verify each icon has a local path (starts with /icons/)
+        for (let i = 0; i < iconCount; i++) {
+          const icon = icons.nth(i);
+          const src = await icon.getAttribute("src");
+
+          console.log(`Icon ${i + 1} src: ${src}`);
+
+          // Verify the icon path is a local static path
+          if (src) {
+            expect(src).toMatch(/^\/icons\/.+\.(jpg|png|webp)$/);
+          }
+        }
+
+        // Take screenshot showing game icons
+        await page.screenshot({
+          path: "e2e/screenshots/08-game-icons.png",
+          fullPage: true,
+        });
+
+        console.log("Test 8 PASSED: Game card icons use local static paths");
+      } else {
+        console.log("Test 8 SKIPPED: No game cards visible (may need data seeded)");
+      }
+    });
+
+    test("9. Game icons load without errors", async ({ page }) => {
+      // Track broken images
+      const brokenImages: string[] = [];
+
+      // Listen for image load errors
+      page.on("pageerror", (error) => {
+        console.log("Page error:", error.message);
+      });
+
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      // Check all game card icons
+      const icons = page.locator(".game-card-icon");
+      const iconCount = await icons.count();
+
+      if (iconCount > 0) {
+        for (let i = 0; i < iconCount; i++) {
+          const icon = icons.nth(i);
+          const src = await icon.getAttribute("src");
+
+          // Check if image loaded successfully by checking naturalWidth
+          const isLoaded = await icon.evaluate((img: HTMLImageElement) => {
+            return img.complete && img.naturalWidth > 0;
+          });
+
+          if (!isLoaded && src) {
+            brokenImages.push(src);
+          }
+        }
+
+        console.log(`Total icons: ${iconCount}`);
+        console.log(`Broken images: ${brokenImages.length}`);
+
+        if (brokenImages.length > 0) {
+          console.log("Broken image sources:", brokenImages);
+        }
+
+        // All images should load successfully
+        expect(brokenImages).toHaveLength(0);
+
+        console.log("Test 9 PASSED: All game icons loaded without errors");
+      } else {
+        console.log("Test 9 SKIPPED: No game cards visible");
+      }
+    });
+
+    test("10. Game icons have proper alt text for accessibility", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      const icons = page.locator(".game-card-icon");
+      const iconCount = await icons.count();
+
+      if (iconCount > 0) {
+        for (let i = 0; i < iconCount; i++) {
+          const icon = icons.nth(i);
+          const altText = await icon.getAttribute("alt");
+
+          // Each icon should have alt text containing "icon"
+          expect(altText).toBeTruthy();
+          expect(altText).toContain("icon");
+        }
+
+        console.log("Test 10 PASSED: All game icons have proper alt text");
+      } else {
+        console.log("Test 10 SKIPPED: No game cards visible");
+      }
+    });
+  });
 });

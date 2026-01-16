@@ -157,3 +157,25 @@ This allows CI environments without Convex to pass while still testing when data
 - `[aria-label*="email alerts"]` - Subscription toggle buttons
 - `.region-popover--portal` - Portal-rendered popover
 - `[role="dialog"]` with "Email Alerts" text - Region selection dialog
+
+## Game Icon Tests (Issue #4)
+
+### Test Structure
+Tests 8-10 in `dashboard.spec.ts` verify game icons:
+- Test 8: Verifies icon `src` attributes use local paths (`/icons/*.jpg`)
+- Test 9: Verifies images load without errors (naturalWidth > 0)
+- Test 10: Verifies accessibility alt text contains "icon"
+
+### Key Selectors
+- `.game-card-icon` - Game icon images within cards
+- `.game-card` - Game card containers
+
+### Skip Pattern
+These tests skip gracefully when no game cards are visible:
+```javascript
+if (cardCount > 0) {
+  // Run tests
+} else {
+  console.log("Test SKIPPED: No game cards visible");
+}
+```

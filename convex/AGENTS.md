@@ -47,3 +47,11 @@
 - `subscriptions:upsertSubscription` - Accepts optional `userId` for custom auth compatibility
 - `subscriptions:getGameSubscription` - Accepts optional `userId` for queries
 - `subscriptions:getGameSubscribedRegions` - Accepts optional `userId` for queries
+
+## Game Icons (Issue #4)
+
+- Game icons are stored locally in `public/icons/` as JPG files
+- Icon URLs in the database use relative paths: `/icons/game-slug.jpg`
+- External CDN URLs (e.g., Blizzard's akamaized.net) are unreliable - they return 422 errors
+- To update existing game icon URLs: `npx convex run seedGames:updateBlizzardGameIcons`
+- Image source for game artwork: RAWG API (`https://api.rawg.io/api/games/{slug}`) - use `background_image` field

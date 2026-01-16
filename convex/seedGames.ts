@@ -31,7 +31,7 @@ const BLIZZARD_GAMES: GameSeedData[] = [
     slug: "world-of-warcraft",
     displayName: "World of Warcraft",
     platform: "blizzard",
-    iconUrl: "https://blz-contentstack-images.akamaized.net/v3/assets/blt72f16e066f85e164/blt7c8acd72ee31c554/6716fb52f00aaf4a9d1b3c61/WoW_Logo_Large_RGB.webp",
+    iconUrl: "/icons/world-of-warcraft.jpg",
     sortOrder: 1,
     isActive: true,
   },
@@ -39,7 +39,7 @@ const BLIZZARD_GAMES: GameSeedData[] = [
     slug: "overwatch-2",
     displayName: "Overwatch 2",
     platform: "blizzard",
-    iconUrl: "https://blz-contentstack-images.akamaized.net/v3/assets/blt72f16e066f85e164/blt6c8a56f0cec4e20a/6716fb51a8d28347e50cd22e/Overwatch_Logo_Large_RGB.webp",
+    iconUrl: "/icons/overwatch-2.jpg",
     sortOrder: 2,
     isActive: true,
   },
@@ -47,7 +47,7 @@ const BLIZZARD_GAMES: GameSeedData[] = [
     slug: "diablo-iv",
     displayName: "Diablo IV",
     platform: "blizzard",
-    iconUrl: "https://blz-contentstack-images.akamaized.net/v3/assets/blt72f16e066f85e164/blt2a5b89eb7e84d4a2/6716fb51764ea4eeae9b8e87/Diablo_IV_Logo_Large_RGB.webp",
+    iconUrl: "/icons/diablo-iv.jpg",
     sortOrder: 3,
     isActive: true,
   },
@@ -97,5 +97,39 @@ export const seedBlizzardGames = mutation({
 
     console.log(`[INFO] Seed complete. Added: ${added}, Skipped: ${skipped}`);
     return { added, skipped };
+  },
+});
+
+/**
+ * Updates icon URLs for existing Blizzard games to use local static paths.
+ *
+ * Run via: npx convex run seedGames:updateBlizzardGameIcons
+ *
+ * @returns Object with count of games updated
+ */
+export const updateBlizzardGameIcons = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    let updated = 0;
+
+    for (const gameData of BLIZZARD_GAMES) {
+      const existingGame = await ctx.db
+        .query("games")
+        .withIndex("by_slug", (q) => q.eq("slug", gameData.slug))
+        .first();
+
+      if (existingGame && existingGame.iconUrl !== gameData.iconUrl) {
+        await ctx.db.patch(existingGame._id, {
+          iconUrl: gameData.iconUrl,
+          updatedAt: now,
+        });
+        console.log(`[INFO] Updated icon URL for "${gameData.displayName}".`);
+        updated++;
+      }
+    }
+
+    console.log(`[INFO] Icon update complete. Updated: ${updated}`);
+    return { updated };
   },
 });

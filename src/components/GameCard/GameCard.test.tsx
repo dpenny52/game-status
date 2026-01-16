@@ -261,4 +261,79 @@ describe("GameCard Component", () => {
       expect(favoriteToggle).not.toBeInTheDocument();
     });
   });
+
+  describe("Game Icon Display (Issue #4)", () => {
+    it("should render local static image path correctly", () => {
+      const localIconProps: GameCardProps = {
+        game: {
+          _id: "game1",
+          slug: "world-of-warcraft",
+          displayName: "World of Warcraft",
+          platform: "blizzard",
+          iconUrl: "/icons/world-of-warcraft.jpg",
+          sortOrder: 1,
+          isActive: true,
+        },
+        statusRecords: [
+          {
+            _id: "status1",
+            status: "online",
+            region: "na",
+            lastCheckedAt: NOW - 120000,
+            statusChangedAt: NOW - 3600000,
+          },
+        ],
+      };
+
+      render(<GameCard {...localIconProps} />);
+
+      const icon = screen.getByRole("img", { name: /World of Warcraft/i });
+      expect(icon).toBeInTheDocument();
+      expect(icon).toHaveAttribute("src", "/icons/world-of-warcraft.jpg");
+    });
+
+    it("should render different game icons correctly", () => {
+      const gameIcons = [
+        { slug: "world-of-warcraft", displayName: "World of Warcraft", iconUrl: "/icons/world-of-warcraft.jpg" },
+        { slug: "overwatch-2", displayName: "Overwatch 2", iconUrl: "/icons/overwatch-2.jpg" },
+        { slug: "diablo-iv", displayName: "Diablo IV", iconUrl: "/icons/diablo-iv.jpg" },
+      ];
+
+      gameIcons.forEach(({ slug, displayName, iconUrl }) => {
+        const props: GameCardProps = {
+          game: {
+            _id: `game-${slug}`,
+            slug,
+            displayName,
+            platform: "blizzard",
+            iconUrl,
+            sortOrder: 1,
+            isActive: true,
+          },
+          statusRecords: [],
+        };
+
+        const { unmount } = render(<GameCard {...props} />);
+
+        const icon = screen.getByRole("img", { name: new RegExp(displayName, "i") });
+        expect(icon).toHaveAttribute("src", iconUrl);
+
+        unmount();
+      });
+    });
+
+    it("should have lazy loading attribute on icon", () => {
+      render(<GameCard {...baseProps} />);
+
+      const icon = screen.getByRole("img", { name: /World of Warcraft/i });
+      expect(icon).toHaveAttribute("loading", "lazy");
+    });
+
+    it("should have correct alt text for accessibility", () => {
+      render(<GameCard {...baseProps} />);
+
+      const icon = screen.getByRole("img", { name: /World of Warcraft icon/i });
+      expect(icon).toBeInTheDocument();
+    });
+  });
 });
