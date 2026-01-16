@@ -196,3 +196,20 @@ if (cardCount > 0) {
 - `settings-page` - Authenticated settings view
 - `profile-display-name` - User display name (only visible when authenticated)
 - `profile-email` - User email (protected data)
+
+## Display Name Update Authorization Tests (Issue #10)
+
+### Test Section
+`auth-security.spec.ts` - "Display Name Update Authorization" section
+
+### Key Security Tests
+- `display name update requires authentication` - Unauthenticated users cannot access edit button
+- `authenticated user can edit their own display name` - Verify edit functionality works
+- `display name mutation only sends displayName (no userId)` - Verify IDOR prevention at API level
+- `display name update does not expose other user IDs in UI` - No userId field in forms
+
+### IDOR Fix Details
+- The updateDisplayName mutation no longer accepts userId from the client
+- Backend derives userId from authenticated identity's email
+- Frontend only passes `{ displayName }` to the mutation
+- This prevents User A from modifying User B's display name

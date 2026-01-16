@@ -215,18 +215,35 @@ export const login = mutation({
 /**
  * Update user's display name.
  *
- * Requires authentication.
+ * Requires authentication. Users can only update their own display name.
+ * The userId is derived from the authenticated identity to prevent IDOR attacks.
  *
  * @param displayName - New display name
  * @returns Updated user data
+ * @throws Error if not authenticated or user not found
  */
 export const updateDisplayName = mutation({
   args: {
-    userId: v.id("users"),
     displayName: v.string(),
   },
   handler: async (ctx, args) => {
-    const { userId, displayName } = args;
+    const { displayName } = args;
+
+    // Require authentication
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) {
+      throw new Error("Authentication required");
+    }
+
+    // Get the current authenticated user from the database
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
 
     // Validate display name
     const validation = validateDisplayName(displayName);
@@ -234,13 +251,13 @@ export const updateDisplayName = mutation({
       throw new Error(validation.error!);
     }
 
-    // Update user record
-    await ctx.db.patch(userId, {
+    // Update user record - userId is derived from auth, not from client
+    await ctx.db.patch(user._id, {
       displayName: displayName.trim(),
       updatedAt: Date.now(),
     });
 
-    const updatedUser = await ctx.db.get(userId);
+    const updatedUser = await ctx.db.get(user._id);
     return updatedUser;
   },
 });

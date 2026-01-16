@@ -81,3 +81,14 @@ The following games are seeded in `seedGames.ts` (11 total):
 - Return limited public fields only - exclude internal fields like `_creationTime`, `updatedAt`, `providerId`
 - Error message consistency prevents user enumeration: "Not authorized" for both non-existent and unauthorized users
 - Test file: `convex/__tests__/auth.getUserById.test.ts` - covers auth required, IDOR prevention, field filtering
+
+## Security - updateDisplayName Authorization (Issue #10)
+
+- CRITICAL: Never accept `userId` from client in mutations that modify user data
+- Pattern: Always derive userId from `ctx.auth.getUserIdentity()` email, then query the users table
+- The `updateDisplayName` mutation no longer accepts `userId` - it only takes `displayName`
+- Server looks up user by authenticated identity's email: `ctx.db.query("users").withIndex("by_email", ...)`
+- This prevents IDOR attacks where User A could modify User B's display name
+- Frontend in AuthContext now only passes `displayName` to the mutation (no userId)
+- Test file: `convex/__tests__/auth.updateDisplayName.test.ts` - covers auth required, IDOR prevention
+- E2E tests: `e2e/auth-security.spec.ts` - "Display Name Update Authorization" section

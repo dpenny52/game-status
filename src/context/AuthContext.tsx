@@ -16,7 +16,6 @@ import React, {
 } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
 
 /**
  * User type representing an authenticated user.
@@ -224,6 +223,8 @@ export function AuthProvider({
   }, []);
 
   // Update display name using Convex mutation
+  // Note: userId is NOT passed - the backend derives it from the authenticated identity
+  // to prevent IDOR attacks (Issue #10)
   const updateDisplayName = useCallback(
     async (displayName: string) => {
       if (!user) {
@@ -231,7 +232,6 @@ export function AuthProvider({
       }
 
       const updatedUser = await updateDisplayNameMutation({
-        userId: user._id as Id<"users">,
         displayName,
       });
 

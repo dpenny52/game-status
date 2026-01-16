@@ -379,7 +379,7 @@ describe("AuthContext", () => {
   });
 
   describe("Update Display Name", () => {
-    it("calls updateDisplayName mutation with userId and displayName", async () => {
+    it("calls updateDisplayName mutation with displayName only (userId derived server-side)", async () => {
       // Setup authenticated user first
       const mockUser = {
         _id: "user_123",
@@ -421,9 +421,10 @@ describe("AuthContext", () => {
         await userEvent.click(screen.getByTestId("update-name-btn"));
       });
 
-      // Verify mutation was called with correct args
+      // Verify mutation was called with displayName only
+      // Note: userId is NOT passed to prevent IDOR attacks (Issue #10)
+      // The backend derives userId from the authenticated identity
       expect(mockUpdateDisplayNameMutation).toHaveBeenCalledWith({
-        userId: "user_123",
         displayName: "Updated Name",
       });
     });
