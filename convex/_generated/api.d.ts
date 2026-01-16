@@ -26,6 +26,7 @@ import type * as publishers_riot from "../publishers/riot.js";
 import type * as publishers_squareenix from "../publishers/squareenix.js";
 import type * as publishers_steam from "../publishers/steam.js";
 import type * as queries from "../queries.js";
+import type * as seedGames from "../seedGames.js";
 import type * as statusFetcher from "../statusFetcher.js";
 import type * as statusMutations from "../statusMutations.js";
 import type * as subscriptions from "../subscriptions.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   "publishers/squareenix": typeof publishers_squareenix;
   "publishers/steam": typeof publishers_steam;
   queries: typeof queries;
+  seedGames: typeof seedGames;
   statusFetcher: typeof statusFetcher;
   statusMutations: typeof statusMutations;
   subscriptions: typeof subscriptions;
