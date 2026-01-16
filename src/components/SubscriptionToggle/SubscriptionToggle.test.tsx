@@ -26,7 +26,7 @@ vi.mock("../../context/AuthContext", () => ({
 }));
 
 // Import after mocking
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { useAuth } from "../../context/AuthContext";
 import { SubscriptionToggle } from "./SubscriptionToggle";
 import { RegionSelectionPopover } from "./RegionSelectionPopover";

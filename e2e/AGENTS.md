@@ -26,3 +26,24 @@ npm run dev
 # Then in another terminal
 npx playwright test e2e/auth.spec.ts
 ```
+
+## Settings Tests
+
+### Key Test IDs
+- `settings-unauthenticated` - Login prompt for unauthenticated users
+- `settings-login-button` - Login button on settings page
+- `settings-page` - Main authenticated settings page
+- `settings-email` - User email display
+- `settings-displayname` - Display name value (non-edit mode)
+- `settings-edit-button` - Triggers edit mode for display name
+- `settings-displayname-input` - Input field in edit mode
+- `settings-save-button` / `settings-cancel-button` - Edit mode actions
+- `settings-success` / `settings-error` - Feedback messages
+- `settings-logout-button` - Logout trigger
+- `settings-confirm-logout` / `settings-cancel-logout` - Logout confirmation
+
+### Test Patterns
+- Use `loginTestUser()` helper to authenticate before settings tests
+- Check for `settings-page` visibility to confirm authenticated state
+- Use `page.reload()` to test state persistence
+- Logout flow requires clicking button then confirming

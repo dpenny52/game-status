@@ -9,9 +9,7 @@ for ((i=1; i<=$1; i++)); do
   echo "Iteration $i"
   echo "--------------------------------"
   
-  result=$(claude -p "$(cat prompt.md)" --output-format text 2>&1) || true
-
-  echo "$result"
+  claude "$(cat prompt.md)" --output-format text 2>&1
 
   echo ""
   echo "--- End of iteration $i ---"

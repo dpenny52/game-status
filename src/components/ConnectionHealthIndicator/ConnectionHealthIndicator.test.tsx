@@ -7,7 +7,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { ConnectionHealthIndicatorControlled } from "./ConnectionHealthIndicator";
-import type { ConnectionStatus } from "./ConnectionHealthIndicator";
 
 // We test the controlled variant to avoid mocking Convex hooks
 describe("ConnectionHealthIndicator Component", () => {

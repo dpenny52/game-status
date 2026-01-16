@@ -100,7 +100,6 @@ export function useStaleData(
     return () => {
       clearInterval(intervalId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastCheckedAt, thresholdMinutes]);
 
   return staleState;

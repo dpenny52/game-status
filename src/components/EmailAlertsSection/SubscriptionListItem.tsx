@@ -47,7 +47,7 @@ interface SubscriptionListItemProps {
  */
 export function SubscriptionListItem({
   subscriptionId,
-  region,
+  region: _region,
   regionLabel,
   isActive,
   gameName,

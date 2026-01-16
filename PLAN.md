@@ -90,10 +90,10 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 - [x] Write unit test: mutation called with userId and displayName
 - [x] Write unit test: local state updated on success
 - [x] Write unit test: error handling
-- [ ] Create E2E test file: `e2e/settings.spec.ts`
-- [ ] Add E2E test: change display name in settings
-- [ ] Add E2E test: name persists after page refresh
-- [ ] All tests pass
+- [x] Create E2E test file: `e2e/settings.spec.ts`
+- [x] Add E2E test: change display name in settings
+- [x] Add E2E test: name persists after page refresh
+- [x] All tests pass
 
 **Files to Modify**:
 - `src/context/AuthContext.tsx`
@@ -103,7 +103,7 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 **Dependencies**: Task 1.1
 
-**Status**: PARTIALLY COMPLETE - Backend integration done, unit tests pass, E2E settings tests pending
+**Status**: COMPLETED - Backend integration done, unit tests pass, E2E settings tests created
 
 ---
 

@@ -94,7 +94,7 @@ export function NotificationPreferences({
       try {
         await onToggle(subscriptionId, !currentState);
         showFeedback("success", currentState ? "Alerts paused" : "Alerts enabled");
-      } catch (err) {
+      } catch (_err) {
         showFeedback("error", "Failed to update subscription");
       }
     },
@@ -126,7 +126,7 @@ export function NotificationPreferences({
       try {
         await onDelete(subscriptionId);
         showFeedback("success", "Subscription removed");
-      } catch (err) {
+      } catch (_err) {
         showFeedback("error", "Failed to remove subscription");
       }
     },

@@ -6,7 +6,7 @@
  * @module PlatformSectionResponsiveTests
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, cleanup } from "@testing-library/react";
 import React from "react";
 
 // Mock the Convex hooks and context

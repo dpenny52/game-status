@@ -163,9 +163,6 @@ export function AuthProvider({
         };
         setUserState(userData);
         setModalState(null);
-      } catch (error) {
-        // Re-throw the error so the calling component can handle it
-        throw error;
       } finally {
         setIsLoading(false);
       }
@@ -194,9 +191,6 @@ export function AuthProvider({
         };
         setUserState(userData);
         setModalState(null);
-      } catch (error) {
-        // Re-throw the error so the calling component can handle it
-        throw error;
       } finally {
         setIsLoading(false);
       }
@@ -223,24 +217,19 @@ export function AuthProvider({
         throw new Error("Must be logged in to update display name");
       }
 
-      try {
-        const updatedUser = await updateDisplayNameMutation({
-          userId: user._id as Id<"users">,
-          displayName,
-        });
+      const updatedUser = await updateDisplayNameMutation({
+        userId: user._id as Id<"users">,
+        displayName,
+      });
 
-        if (updatedUser) {
-          setUserState((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              displayName: updatedUser.displayName,
-            };
-          });
-        }
-      } catch (error) {
-        // Re-throw the error so the calling component can handle it
-        throw error;
+      if (updatedUser) {
+        setUserState((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            displayName: updatedUser.displayName,
+          };
+        });
       }
     },
     [user, updateDisplayNameMutation]

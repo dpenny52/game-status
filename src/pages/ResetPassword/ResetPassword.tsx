@@ -67,7 +67,7 @@ export function ResetPassword(): JSX.Element {
         } else {
           setTokenError("Invalid or expired reset link. Please request a new one.");
         }
-      } catch (error) {
+      } catch (_error) {
         setTokenError("Failed to validate reset link. Please try again.");
       } finally {
         setIsValidating(false);
