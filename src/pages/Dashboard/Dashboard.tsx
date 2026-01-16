@@ -160,7 +160,7 @@ function DashboardDemo(): JSX.Element {
  * The actual dashboard content, receives game data as props.
  */
 function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus[] | undefined }): JSX.Element {
-  const { isAuthenticated, openLoginModal, user } = useAuth();
+  const { isAuthenticated, openLoginModal, user, logout } = useAuth();
 
   // Group games by platform
   const gamesByPlatform = useMemo(() => {
@@ -200,9 +200,19 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
           </div>
           <div className="dashboard-header-actions">
             {isAuthenticated && user && (
-              <span className="dashboard-username" data-testid="dashboard-username">
-                {user.displayName}
-              </span>
+              <>
+                <span className="dashboard-username" data-testid="dashboard-username">
+                  {user.displayName}
+                </span>
+                <button
+                  className="dashboard-logout-button"
+                  onClick={logout}
+                  data-testid="dashboard-logout-button"
+                  aria-label="Log out"
+                >
+                  Log Out
+                </button>
+              </>
             )}
             {!isAuthenticated && (
               <button
@@ -251,9 +261,19 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
           </div>
           <div className="dashboard-header-actions">
             {isAuthenticated && user && (
-              <span className="dashboard-username" data-testid="dashboard-username">
-                {user.displayName}
-              </span>
+              <>
+                <span className="dashboard-username" data-testid="dashboard-username">
+                  {user.displayName}
+                </span>
+                <button
+                  className="dashboard-logout-button"
+                  onClick={logout}
+                  data-testid="dashboard-logout-button"
+                  aria-label="Log out"
+                >
+                  Log Out
+                </button>
+              </>
             )}
             {!isAuthenticated && (
               <button
@@ -302,9 +322,19 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
         </div>
         <div className="dashboard-header-actions">
           {isAuthenticated && user && (
-            <span className="dashboard-username" data-testid="dashboard-username">
-              {user.displayName}
-            </span>
+            <>
+              <span className="dashboard-username" data-testid="dashboard-username">
+                {user.displayName}
+              </span>
+              <button
+                className="dashboard-logout-button"
+                onClick={logout}
+                data-testid="dashboard-logout-button"
+                aria-label="Log out"
+              >
+                Log Out
+              </button>
+            </>
           )}
           {!isAuthenticated && (
             <button

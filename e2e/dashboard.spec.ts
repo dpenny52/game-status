@@ -293,6 +293,117 @@ test.describe("GameStatus Dashboard", () => {
     });
   });
 
+  test.describe("Dashboard Logout Button (Issue #7)", () => {
+    // Mock user for authenticated tests
+    const MOCK_USER = {
+      _id: "test-logout-user-id",
+      email: "logout-test@example.com",
+      displayName: "Logout Test User",
+      isEmailVerified: true,
+      _creationTime: Date.now() - 86400000,
+    };
+
+    test("unauthenticated user should see Sign In button, not logout button", async ({ page }) => {
+      // Ensure logged out state
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector(".dashboard", { timeout: 10000 });
+
+      // Should see Sign In button
+      const signInButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(signInButton).toBeVisible();
+      await expect(signInButton).toHaveText("Sign In");
+
+      // Should NOT see logout button
+      const logoutButton = page.locator('[data-testid="dashboard-logout-button"]');
+      await expect(logoutButton).not.toBeVisible();
+
+      console.log("Test PASSED: Unauthenticated user sees Sign In button, not logout button");
+    });
+
+    test("authenticated user should see logout button in header", async ({ page }) => {
+      // Set up authenticated state via localStorage
+      await page.evaluate((user) => {
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user }));
+      }, MOCK_USER);
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector(".dashboard", { timeout: 10000 });
+
+      // Should see logout button
+      const logoutButton = page.locator('[data-testid="dashboard-logout-button"]');
+      await expect(logoutButton).toBeVisible({ timeout: 5000 });
+      await expect(logoutButton).toHaveText("Log Out");
+
+      // Should see username
+      const username = page.locator('[data-testid="dashboard-username"]');
+      await expect(username).toBeVisible();
+      await expect(username).toHaveText(MOCK_USER.displayName);
+
+      // Should NOT see Sign In button
+      const signInButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(signInButton).not.toBeVisible();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/dashboard-logout-button.png",
+        fullPage: false,
+      });
+
+      console.log("Test PASSED: Authenticated user sees logout button in header");
+    });
+
+    test("clicking logout button should log out user", async ({ page }) => {
+      // Set up authenticated state via localStorage
+      await page.evaluate((user) => {
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user }));
+      }, MOCK_USER);
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector(".dashboard", { timeout: 10000 });
+
+      // Verify logout button is visible
+      const logoutButton = page.locator('[data-testid="dashboard-logout-button"]');
+      await expect(logoutButton).toBeVisible({ timeout: 5000 });
+
+      // Click logout button
+      await logoutButton.click();
+
+      // Wait for logout to complete - should now see Sign In button
+      const signInButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(signInButton).toBeVisible({ timeout: 10000 });
+
+      // Logout button should no longer be visible
+      await expect(logoutButton).not.toBeVisible();
+
+      // Verify localStorage is cleared
+      const authState = await page.evaluate(() => localStorage.getItem("gamestatus_auth"));
+      expect(authState).toBeNull();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/dashboard-after-logout.png",
+        fullPage: false,
+      });
+
+      console.log("Test PASSED: Clicking logout button logs out user");
+    });
+
+    test("logout button should have proper accessibility attributes", async ({ page }) => {
+      // Set up authenticated state
+      await page.evaluate((user) => {
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user }));
+      }, MOCK_USER);
+      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForSelector(".dashboard", { timeout: 10000 });
+
+      // Check accessibility attributes
+      const logoutButton = page.locator('[data-testid="dashboard-logout-button"]');
+      await expect(logoutButton).toBeVisible({ timeout: 5000 });
+      await expect(logoutButton).toHaveAttribute("aria-label", "Log out");
+
+      console.log("Test PASSED: Logout button has proper accessibility attributes");
+    });
+  });
+
   test.describe("All Games Coverage (Issue #6)", () => {
     /**
      * Expected games from product/mission.md
