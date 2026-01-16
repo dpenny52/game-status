@@ -1,0 +1,152 @@
+/**
+ * GameCard Styles
+ *
+ * Styling for game cards with status indicators and timestamps.
+ */
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.game-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Status-based border accent */
+.game-card-status-online {
+  border-left: 3px solid var(--status-online);
+}
+
+.game-card-status-offline {
+  border-left: 3px solid var(--status-offline);
+}
+
+.game-card-status-degraded {
+  border-left: 3px solid var(--status-degraded);
+}
+
+.game-card-status-maintenance {
+  border-left: 3px solid var(--status-maintenance);
+}
+
+.game-card-status-unknown {
+  border-left: 3px solid var(--status-unknown);
+}
+
+/* Stale data indicator */
+.game-card-stale {
+  opacity: 0.8;
+  background-color: #fefce8;
+}
+
+/* Header */
+.game-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.game-card-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.375rem;
+  object-fit: cover;
+  background-color: #f3f4f6;
+}
+
+.game-card-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.game-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-card-platform {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Status section */
+.game-card-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-card-status-message {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-style: italic;
+}
+
+/* Timestamps */
+.game-card-timestamps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.game-card-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timestamp-label {
+  color: #9ca3af;
+}
+
+.timestamp-value {
+  color: #4b5563;
+}
+
+.game-card-down-since {
+  color: var(--status-offline);
+}
+
+.game-card-down-since .timestamp-label,
+.game-card-down-since .timestamp-value {
+  color: var(--status-offline);
+}
+
+/* Stale indicator */
+.stale-indicator {
+  display: inline-flex;
+  align-items: center;
+  color: var(--status-degraded);
+  margin-left: 0.25rem;
+}
+
+.stale-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Footer */
+.game-card-footer {
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}

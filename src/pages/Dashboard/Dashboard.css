@@ -1,0 +1,114 @@
+/**
+ * Dashboard Page Styles
+ *
+ * Styling for the main dashboard layout including header, content, and footer.
+ */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+/* Header */
+.dashboard-header {
+  padding: 1.5rem 2rem;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.dashboard-brand {
+  margin: 0 0 0.25rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dashboard-tagline {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+/* Main content */
+.dashboard-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Platform sections */
+.platform-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Loading state */
+.dashboard-loading {
+  text-align: center;
+}
+
+.dashboard-loading-text {
+  margin: 0 0 1.5rem;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* Footer */
+.dashboard-footer {
+  padding: 1rem 2rem;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.footer-timestamp {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.footer-attribution {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .dashboard-brand {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-tagline {
+    font-size: 0.875rem;
+  }
+
+  .dashboard-main {
+    padding: 1rem;
+  }
+
+  .platform-sections {
+    gap: 1rem;
+  }
+
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
