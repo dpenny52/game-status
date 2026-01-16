@@ -1,18 +1,20 @@
 0a. familiarize yourself with the code in src/
-0b. study PLAN.md/
+0b. pull down github issues for this repo ( https://github.com/dpenny52/game-status/ ) and study them
 
-implement the single highest priority feature from PLAN.md - only work on a SINGLE feature
+implement the single highest priority issue from github - only work on a SINGLE issue
 
-prefer to use available skills by starting sub-agents over implementing directly
+take ownership of the github issue being addressed
 
-if all tasks in the PLAN.md are complete, update a TODO.md file with one critical feature to build in the future to improve the app
+as you work append to a local AGENTS.md in each directory with important learnings - be brief and only note very helpful details
 
-as you work update a local AGENTS.md in each directory with important learnings - be brief and only note very helpful details
+if a tool call fails and you fix it append to AGENTS.md to help the next agent
 
-if a tool call fails and you fix it update AGENTS.md to help the next agent
+be sure to add tests, both unit tests and e2e tests, to ensure we never have a regression of this issue
 
 ensure all tests and linting passes, then update specs with your progress
 
 use git add -A and git commit -m "..." to commit your changes
 
 git push origin main
+
+close the github issue when finished

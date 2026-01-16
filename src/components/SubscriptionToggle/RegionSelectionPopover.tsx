@@ -2,16 +2,19 @@
  * RegionSelectionPopover Component
  *
  * A popover dialog for selecting regions to subscribe to for email alerts.
- * Renders as a floating panel positioned relative to the anchor element.
+ * Uses a portal to render at the document body level, preventing clipping
+ * by parent containers with overflow restrictions.
  *
  * Features:
  * - Multi-select checkboxes for NA, EU, Asia, OCE, Global
  * - Closes on outside click, Escape key, or successful submit
  * - Focus trap for accessibility
+ * - Portal-based rendering to avoid overflow clipping
  *
  * @module RegionSelectionPopover
  */
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import "./RegionSelectionPopover.css";
 
 /**
@@ -80,8 +83,61 @@ export function RegionSelectionPopover({
     new Set(initialRegions)
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const firstCheckboxRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * Calculate and update popover position based on anchor element.
+   */
+  useEffect(() => {
+    function updatePosition() {
+      if (!anchorRef.current) return;
+
+      const anchorRect = anchorRef.current.getBoundingClientRect();
+      const popoverWidth = 260; // min-width from CSS
+      const popoverHeight = 340; // approximate height
+      const margin = 8;
+
+      // Position below the anchor by default
+      let top = anchorRect.bottom + margin;
+      let left = anchorRect.right - popoverWidth;
+
+      // Ensure popover stays within viewport
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Adjust horizontal position if it would overflow
+      if (left < margin) {
+        left = margin;
+      }
+      if (left + popoverWidth > viewportWidth - margin) {
+        left = viewportWidth - popoverWidth - margin;
+      }
+
+      // If popover would overflow bottom, position above the anchor
+      if (top + popoverHeight > viewportHeight - margin) {
+        top = anchorRect.top - popoverHeight - margin;
+        // If still overflows top, just use available space
+        if (top < margin) {
+          top = margin;
+        }
+      }
+
+      setPosition({ top, left });
+    }
+
+    updatePosition();
+
+    // Update position on scroll or resize
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [anchorRef]);
 
   /**
    * Handle checkbox change for a region.
@@ -190,14 +246,24 @@ export function RegionSelectionPopover({
         ? "Subscribe"
         : "Update";
 
-  return (
+  // Don't render until position is calculated
+  if (!position) {
+    return <></>;
+  }
+
+  const popoverContent = (
     <div
       ref={popoverRef}
-      className="region-popover"
+      className="region-popover region-popover--portal"
       role="dialog"
       aria-modal="true"
       aria-label={`Select regions for ${gameName} alerts`}
       onKeyDown={handleKeyDown}
+      style={{
+        position: "fixed",
+        top: position.top,
+        left: position.left,
+      }}
     >
       <div className="region-popover__header">
         <h3 className="region-popover__title">Email Alerts</h3>
@@ -246,6 +312,9 @@ export function RegionSelectionPopover({
       </div>
     </div>
   );
+
+  // Use portal to render at document body level, avoiding overflow clipping
+  return createPortal(popoverContent, document.body);
 }
 
 export default RegionSelectionPopover;

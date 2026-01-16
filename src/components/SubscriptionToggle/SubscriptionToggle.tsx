@@ -97,21 +97,24 @@ export function SubscriptionToggle({
   gameName,
   onSubscriptionChange,
 }: SubscriptionToggleProps): React.JSX.Element | null {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [optimisticSubscribed, setOptimisticSubscribed] = useState<boolean | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Query subscription status
+  // Get userId from auth context for custom auth (not Convex native auth)
+  const userId = user?._id as Id<"users"> | undefined;
+
+  // Query subscription status - pass userId for custom auth systems
   const subscriptionStatus = useQuery(
     api.subscriptions.getGameSubscription,
-    isAuthenticated ? { gameId } : "skip"
+    isAuthenticated && userId ? { gameId, userId } : "skip"
   );
 
   // Query all subscribed regions (including inactive) for pre-populating popover
   const subscribedRegions = useQuery(
     api.subscriptions.getGameSubscribedRegions,
-    isAuthenticated ? { gameId } : "skip"
+    isAuthenticated && userId ? { gameId, userId } : "skip"
   );
 
   // Mutation for upserting subscriptions
@@ -163,6 +166,7 @@ export function SubscriptionToggle({
         const result = await upsertSubscription({
           gameId,
           regions: selectedRegions,
+          userId, // Pass userId for custom auth systems
         });
 
         // Call callback if provided
@@ -178,7 +182,7 @@ export function SubscriptionToggle({
         throw error;
       }
     },
-    [gameId, upsertSubscription, onSubscriptionChange]
+    [gameId, upsertSubscription, onSubscriptionChange, userId]
   );
 
   // Don't render for unauthenticated users

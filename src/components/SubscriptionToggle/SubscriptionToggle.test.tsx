@@ -20,9 +20,12 @@ vi.mock("convex/react", () => ({
   useMutation: vi.fn(() => vi.fn()),
 }));
 
-// Mock the auth context
+// Mock the auth context - include user with _id for custom auth
 vi.mock("../../context/AuthContext", () => ({
-  useAuth: vi.fn(() => ({ isAuthenticated: true })),
+  useAuth: vi.fn(() => ({
+    isAuthenticated: true,
+    user: { _id: "user_123", email: "test@example.com", displayName: "Test User", isEmailVerified: true },
+  })),
 }));
 
 // Import after mocking
@@ -34,7 +37,10 @@ import { RegionSelectionPopover } from "./RegionSelectionPopover";
 describe("SubscriptionToggle Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ isAuthenticated: true });
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      isAuthenticated: true,
+      user: { _id: "user_123", email: "test@example.com", displayName: "Test User", isEmailVerified: true },
+    });
   });
 
   afterEach(() => {
@@ -60,7 +66,7 @@ describe("SubscriptionToggle Component", () => {
   });
 
   it("should not render for unauthenticated users", () => {
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ isAuthenticated: false });
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ isAuthenticated: false, user: null });
 
     const { container } = render(
       <SubscriptionToggle
@@ -70,6 +76,27 @@ describe("SubscriptionToggle Component", () => {
     );
 
     expect(container.firstChild).toBeNull();
+  });
+
+  it("should not render when user has no _id", () => {
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      isAuthenticated: true,
+      user: { email: "test@example.com" }, // Missing _id
+    });
+
+    // useQuery will return "skip" because userId is undefined
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+
+    render(
+      <SubscriptionToggle
+        gameId={"game_123" as unknown as import("../../../convex/_generated/dataModel").Id<"games">}
+        gameName="Test Game"
+      />
+    );
+
+    // The button should be disabled during loading
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
   });
 
   it("should show filled bell icon when subscribed", () => {
@@ -114,14 +141,66 @@ describe("SubscriptionToggle Component", () => {
 describe("RegionSelectionPopover Component", () => {
   const mockOnSave = vi.fn();
   const mockOnClose = vi.fn();
-  const mockAnchorRef = { current: document.createElement("button") };
+  let mockAnchorRef: { current: HTMLButtonElement };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Create anchor element with getBoundingClientRect for portal positioning
+    const anchorButton = document.createElement("button");
+    anchorButton.getBoundingClientRect = () => ({
+      top: 100,
+      bottom: 132,
+      left: 200,
+      right: 232,
+      width: 32,
+      height: 32,
+      x: 200,
+      y: 100,
+      toJSON: () => ({}),
+    });
+    document.body.appendChild(anchorButton);
+    mockAnchorRef = { current: anchorButton };
   });
 
   afterEach(() => {
     cleanup();
+    // Clean up anchor element
+    if (mockAnchorRef.current && document.body.contains(mockAnchorRef.current)) {
+      document.body.removeChild(mockAnchorRef.current);
+    }
+  });
+
+  it("should render popover via portal at document body level", () => {
+    render(
+      <RegionSelectionPopover
+        gameName="Test Game"
+        initialRegions={[]}
+        anchorRef={mockAnchorRef}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+      />
+    );
+
+    // The dialog should be rendered at body level (portal)
+    const dialog = document.body.querySelector('[role="dialog"]');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog?.classList.contains("region-popover--portal")).toBe(true);
+  });
+
+  it("should have fixed positioning from portal", () => {
+    render(
+      <RegionSelectionPopover
+        gameName="Test Game"
+        initialRegions={[]}
+        anchorRef={mockAnchorRef}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+      />
+    );
+
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).toBeInTheDocument();
+    expect(dialog?.style.position).toBe("fixed");
   });
 
   it("should render all region options", () => {

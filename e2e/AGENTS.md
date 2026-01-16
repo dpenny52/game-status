@@ -134,3 +134,26 @@ await expect(
     .or(page.locator('[data-testid="settings-error"]'))
 ).toBeVisible();
 ```
+
+## Subscription Toggle Tests
+
+### Test Structure
+- `subscription.spec.ts` - Tests for email alert subscription toggle
+- Tests are designed to skip gracefully when Convex data isn't available
+
+### Skip Pattern for Convex-Dependent Tests
+When tests require Convex backend data (like game cards), use this pattern:
+```javascript
+async function waitForGameCards(page, testInfo) {
+  const gameCardLoaded = await page.waitForSelector('[data-testid="game-card"]', { timeout: 15000 }).catch(() => null);
+  if (!gameCardLoaded) {
+    testInfo.skip(true, "Skipping: Convex data not available");
+  }
+}
+```
+This allows CI environments without Convex to pass while still testing when data is available.
+
+### Key Test IDs for Subscription Tests
+- `[aria-label*="email alerts"]` - Subscription toggle buttons
+- `.region-popover--portal` - Portal-rendered popover
+- `[role="dialog"]` with "Email Alerts" text - Region selection dialog

@@ -33,3 +33,17 @@
 - Requires `BLIZZARD_CLIENT_ID` and `BLIZZARD_CLIENT_SECRET` env vars
 - Taiwan (tw) region uses separate auth and may fail with standard credentials
 - Real-time status API not available for most games - returns "unknown"
+
+## Custom Auth vs Convex Native Auth
+
+- This app uses a custom localStorage-based auth system, NOT Convex's native auth (Clerk/Auth0)
+- `ctx.auth.getUserIdentity()` returns null because there's no JWT-based auth session
+- Mutations/queries that need user context must accept an optional `userId` parameter
+- Pattern: First check `providedUserId`, then fall back to `ctx.auth.getUserIdentity()` for flexibility
+- Frontend passes `userId` from AuthContext's `user._id` to all subscription-related mutations
+
+## Subscription Mutations
+
+- `subscriptions:upsertSubscription` - Accepts optional `userId` for custom auth compatibility
+- `subscriptions:getGameSubscription` - Accepts optional `userId` for queries
+- `subscriptions:getGameSubscribedRegions` - Accepts optional `userId` for queries

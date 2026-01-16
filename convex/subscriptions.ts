@@ -44,13 +44,14 @@ function generateUnsubscribeToken(): string {
  *
  * @param gameId - The ID of the game to subscribe to
  * @param regions - Array of region codes to subscribe to
+ * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Object with success status and subscription count
  * @throws Error if user is not authenticated
  *
  * @example
  * ```typescript
  * const upsertSubscription = useMutation(api.subscriptions.upsertSubscription);
- * const result = await upsertSubscription({ gameId: "game123", regions: ["na", "eu"] });
+ * const result = await upsertSubscription({ gameId: "game123", regions: ["na", "eu"], userId: "user123" });
  * console.log(`Subscribed to ${result.count} regions`);
  * ```
  */
@@ -58,30 +59,34 @@ export const upsertSubscription = mutation({
   args: {
     gameId: v.id("games"),
     regions: v.array(v.string()),
+    userId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { gameId, regions }): Promise<{ success: boolean; count: number; gameName: string }> => {
-    // Get current user identity
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+  handler: async (ctx, { gameId, regions, userId: providedUserId }): Promise<{ success: boolean; count: number; gameName: string }> => {
+    let userId: Id<"users"> | undefined = providedUserId;
+
+    // If userId not provided, try to get from Convex auth identity
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity?.email) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", identity.email!))
+          .first();
+        if (user) {
+          userId = user._id;
+        }
+      }
+    }
+
+    if (!userId) {
       throw new Error("Authentication required to manage subscriptions");
     }
 
-    // Look up user by email from identity
-    const email = identity.email;
-    if (!email) {
-      throw new Error("User email not found in identity");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
+    // Verify user exists
+    const user = await ctx.db.get(userId);
     if (!user) {
       throw new Error("User not found");
     }
-
-    const userId = user._id;
 
     // Get game details for the response
     const game = await ctx.db.get(gameId);
@@ -412,41 +417,40 @@ export interface GameSubscriptionStatus {
  * Returns null for unauthenticated users.
  *
  * @param gameId - The ID of the game to check
+ * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Subscription status with subscribed regions, or null if not authenticated
  *
  * @example
  * ```typescript
- * const status = useQuery(api.subscriptions.getGameSubscription, { gameId: "game123" });
+ * const status = useQuery(api.subscriptions.getGameSubscription, { gameId: "game123", userId: "user123" });
  * const isSubscribed = status?.isSubscribed ?? false;
  * ```
  */
 export const getGameSubscription = query({
   args: {
     gameId: v.id("games"),
+    userId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { gameId }): Promise<GameSubscriptionStatus | null> => {
-    // Get current user identity
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
+  handler: async (ctx, { gameId, userId: providedUserId }): Promise<GameSubscriptionStatus | null> => {
+    let userId: Id<"users"> | undefined = providedUserId;
+
+    // If userId not provided, try to get from Convex auth identity
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity?.email) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", identity.email!))
+          .first();
+        if (user) {
+          userId = user._id;
+        }
+      }
     }
 
-    // Look up user by email from identity
-    const email = identity.email;
-    if (!email) {
+    if (!userId) {
       return null;
     }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
-    if (!user) {
-      return null;
-    }
-
-    const userId = user._id;
 
     // Get all subscriptions for this user and game
     const subscriptions = await ctx.db
@@ -473,35 +477,34 @@ export const getGameSubscription = query({
  * Used by the region selection popover to pre-check existing regions.
  *
  * @param gameId - The ID of the game to check
+ * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Array of subscribed regions (all subscriptions, not just active)
  */
 export const getGameSubscribedRegions = query({
   args: {
     gameId: v.id("games"),
+    userId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { gameId }): Promise<string[]> => {
-    // Get current user identity
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return [];
+  handler: async (ctx, { gameId, userId: providedUserId }): Promise<string[]> => {
+    let userId: Id<"users"> | undefined = providedUserId;
+
+    // If userId not provided, try to get from Convex auth identity
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity?.email) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", identity.email!))
+          .first();
+        if (user) {
+          userId = user._id;
+        }
+      }
     }
 
-    // Look up user by email from identity
-    const email = identity.email;
-    if (!email) {
+    if (!userId) {
       return [];
     }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
-    if (!user) {
-      return [];
-    }
-
-    const userId = user._id;
 
     // Get all subscriptions for this user and game
     const subscriptions = await ctx.db
