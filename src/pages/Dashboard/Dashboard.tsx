@@ -160,7 +160,7 @@ function DashboardDemo(): JSX.Element {
  * The actual dashboard content, receives game data as props.
  */
 function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus[] | undefined }): JSX.Element {
-  const { isAuthenticated, openLoginModal } = useAuth();
+  const { isAuthenticated, openLoginModal, user } = useAuth();
 
   // Group games by platform
   const gamesByPlatform = useMemo(() => {
@@ -199,6 +199,11 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
             </p>
           </div>
           <div className="dashboard-header-actions">
+            {isAuthenticated && user && (
+              <span className="dashboard-username" data-testid="dashboard-username">
+                {user.displayName}
+              </span>
+            )}
             {!isAuthenticated && (
               <button
                 className="dashboard-login-button"
@@ -245,6 +250,11 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
             </p>
           </div>
           <div className="dashboard-header-actions">
+            {isAuthenticated && user && (
+              <span className="dashboard-username" data-testid="dashboard-username">
+                {user.displayName}
+              </span>
+            )}
             {!isAuthenticated && (
               <button
                 className="dashboard-login-button"
@@ -291,6 +301,11 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
           </p>
         </div>
         <div className="dashboard-header-actions">
+          {isAuthenticated && user && (
+            <span className="dashboard-username" data-testid="dashboard-username">
+              {user.displayName}
+            </span>
+          )}
           {!isAuthenticated && (
             <button
               className="dashboard-login-button"

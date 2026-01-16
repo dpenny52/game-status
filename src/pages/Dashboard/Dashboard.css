@@ -79,6 +79,17 @@
   outline-offset: 2px;
 }
 
+/* Username display for authenticated users */
+.dashboard-username {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
 /* Connection health indicator - positioned in header */
 .dashboard-connection-indicator {
   /* Positioned at the right edge of the header */
