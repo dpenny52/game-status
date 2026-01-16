@@ -12,34 +12,30 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.9) 0%, rgba(26, 26, 36, 0.8) 100%);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s ease;
   position: relative;
   /* Ensure minimum touch-friendly size */
   min-height: 6rem;
+  backdrop-filter: blur(8px);
 }
 
 .game-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
 }
 
-/* Favorited card styling - white drop-shadow border */
+/* Favorited card styling - cyan glow border */
 .game-card-favorited {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.15), 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .game-card-favorited:hover {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* On dark backgrounds, enhance the glow effect */
-@media (prefers-color-scheme: dark) {
-  .game-card-favorited {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(245, 158, 11, 0.3);
-  }
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.6), 0 0 30px rgba(34, 211, 238, 0.2), 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* Status-based border accent */
@@ -65,8 +61,8 @@
 
 /* Stale data indicator - muted styling */
 .game-card-stale {
-  opacity: 0.8;
-  background-color: #fefce8;
+  opacity: 0.7;
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.6) 0%, rgba(26, 26, 36, 0.5) 100%);
 }
 
 /* ============================================
@@ -249,12 +245,13 @@
 .game-card-icon {
   width: 2rem;
   height: 2rem;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
   object-fit: cover;
-  background-color: #f3f4f6;
+  background-color: var(--color-bg-elevated, #1a1a24);
   flex-shrink: 0;
   /* Maintain aspect ratio */
   aspect-ratio: 1 / 1;
+  border: 1px solid var(--color-border-subtle, rgba(148, 163, 184, 0.06));
 }
 
 .game-card-title-section {
@@ -270,7 +267,7 @@
   margin: 0;
   font-size: var(--font-size-min-body, 0.875rem);
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-primary, #f1f5f9);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -280,7 +277,7 @@
 /* Platform label - Mobile first (minimum 12px) */
 .game-card-platform {
   font-size: var(--font-size-min-small, 0.75rem);
-  color: #6b7280;
+  color: var(--color-text-tertiary, #64748b);
   font-weight: 500;
 }
 
@@ -295,7 +292,7 @@
 .game-card-status-message {
   margin: 0;
   font-size: var(--font-size-min-small, 0.75rem);
-  color: #4b5563;
+  color: var(--color-text-secondary, #94a3b8);
   font-style: italic;
 }
 
@@ -305,7 +302,7 @@
   flex-direction: column;
   gap: 0.125rem;
   font-size: var(--font-size-min-small, 0.75rem);
-  color: #6b7280;
+  color: var(--color-text-tertiary, #64748b);
 }
 
 .game-card-timestamp {
@@ -316,11 +313,11 @@
 }
 
 .timestamp-label {
-  color: #9ca3af;
+  color: var(--color-text-muted, #475569);
 }
 
 .timestamp-value {
-  color: #4b5563;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 .game-card-down-since {
@@ -348,7 +345,7 @@
 /* Footer - Regional status */
 .game-card-footer {
   padding-top: 0.375rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
 }
 
 /* Tablet and up (640px+) */

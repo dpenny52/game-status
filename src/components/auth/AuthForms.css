@@ -79,32 +79,35 @@
 
 /* Primary button */
 .auth-button-primary {
-  background-color: var(--color-primary, #6366f1);
-  color: white;
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+  color: #0a0a0f;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
 }
 
 .auth-button-primary:not(:disabled):hover {
-  background-color: var(--color-primary-hover, #5457e5);
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.3);
+  transform: translateY(-1px);
 }
 
 .auth-button-primary:focus {
-  outline: 2px solid var(--color-primary, #6366f1);
+  outline: 2px solid #22d3ee;
   outline-offset: 2px;
 }
 
 /* OAuth buttons */
 .auth-button-oauth {
-  background-color: var(--color-surface-elevated, #2a2a40);
-  color: var(--color-text-primary, #ffffff);
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  background-color: var(--color-surface-elevated, #22222f);
+  color: var(--color-text-primary, #f1f5f9);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
 }
 
 .auth-button-oauth:not(:disabled):hover {
-  background-color: var(--color-hover, rgba(255, 255, 255, 0.1));
+  background-color: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.2);
 }
 
 .auth-button-oauth:focus {
-  outline: 2px solid var(--color-primary, #6366f1);
+  outline: 2px solid var(--color-primary, #22d3ee);
   outline-offset: 2px;
 }
 
@@ -138,7 +141,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background-color: var(--color-border, rgba(255, 255, 255, 0.1));
+  background-color: var(--color-border, rgba(148, 163, 184, 0.12));
 }
 
 .auth-divider span {
@@ -177,7 +180,7 @@
 .form-forgot-link {
   background: none;
   border: none;
-  color: var(--color-primary, #6366f1);
+  color: var(--color-primary, #22d3ee);
   font-size: 0.75rem;
   cursor: pointer;
   padding: 0;
@@ -191,21 +194,21 @@
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  background-color: var(--color-surface-elevated, #2a2a40);
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  background-color: var(--color-surface-elevated, #22222f);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
   border-radius: 8px;
-  color: var(--color-text-primary, #ffffff);
+  color: var(--color-text-primary, #f1f5f9);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input::placeholder {
-  color: var(--color-text-tertiary, #6b7280);
+  color: var(--color-text-tertiary, #64748b);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--color-primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  border-color: var(--color-primary, #22d3ee);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
 }
 
 .form-input:disabled {
@@ -231,7 +234,7 @@
 .auth-link-button {
   background: none;
   border: none;
-  color: var(--color-primary, #6366f1);
+  color: var(--color-primary, #22d3ee);
   font-size: 0.875rem;
   cursor: pointer;
   padding: 0.5rem;
@@ -250,15 +253,15 @@
   gap: 0.5rem;
   margin-top: 1.25rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-top: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
   font-size: 0.875rem;
-  color: var(--color-text-secondary, #a0a0a0);
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 .auth-switch-button {
   background: none;
   border: none;
-  color: var(--color-primary, #6366f1);
+  color: var(--color-primary, #22d3ee);
   font-weight: 500;
   cursor: pointer;
   padding: 0;

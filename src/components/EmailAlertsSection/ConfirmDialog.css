@@ -31,14 +31,16 @@
 
 /* Dialog */
 .confirm-dialog {
-  background-color: var(--color-surface, #1a1a2e);
-  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.98) 0%, rgba(26, 26, 36, 0.95) 100%);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
+  border-radius: 14px;
   padding: 1.5rem;
   max-width: 400px;
   width: 100%;
+  backdrop-filter: blur(12px);
   box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.3),
-    0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    0 25px 50px -10px rgba(0, 0, 0, 0.5),
+    0 10px 10px -5px rgba(0, 0, 0, 0.3);
   animation: confirm-dialog-enter 0.2s ease-out;
 }
 
@@ -93,18 +95,18 @@
 }
 
 .confirm-dialog__button:focus-visible {
-  outline: 2px solid var(--color-primary, #6366f1);
+  outline: 2px solid var(--color-primary, #22d3ee);
   outline-offset: 2px;
 }
 
 /* Cancel button */
 .confirm-dialog__button--cancel {
-  background-color: var(--color-surface-elevated, #2a2a40);
-  color: var(--color-text-primary, #ffffff);
+  background-color: var(--color-surface-elevated, #22222f);
+  color: var(--color-text-primary, #f1f5f9);
 }
 
 .confirm-dialog__button--cancel:not(:disabled):hover {
-  background-color: var(--color-hover, rgba(255, 255, 255, 0.1));
+  background-color: rgba(148, 163, 184, 0.15);
 }
 
 /* Confirm/Delete button */

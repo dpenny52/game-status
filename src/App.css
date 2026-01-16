@@ -23,8 +23,8 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: #0a0a0f;
+  color: #e2e8f0;
 }
 
 /* App container */
@@ -34,22 +34,53 @@ body {
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #22d3ee;
   outline-offset: 2px;
 }
 
-/* Design tokens imported from StatusIndicator */
+/* Design tokens - Dark spacey theme */
 :root {
+  /* Core colors */
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #111118;
+  --color-bg-elevated: #1a1a24;
+  --color-bg-card: #14141c;
+  --color-surface: #1a1a2e;
+  --color-surface-elevated: #22222f;
+
+  /* Text colors */
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #64748b;
+  --color-text-muted: #475569;
+
+  /* Borders */
+  --color-border: rgba(148, 163, 184, 0.12);
+  --color-border-subtle: rgba(148, 163, 184, 0.06);
+  --color-border-accent: rgba(34, 211, 238, 0.3);
+
+  /* Accent colors - Cyan/Teal primary, Blue secondary */
+  --color-primary: #22d3ee;
+  --color-primary-hover: #06b6d4;
+  --color-primary-glow: rgba(34, 211, 238, 0.15);
+  --color-secondary: #3b82f6;
+  --color-secondary-glow: rgba(59, 130, 246, 0.15);
+
+  /* Status colors - Enhanced for dark theme */
   --status-online: #22c55e;
-  --status-online-bg: #dcfce7;
+  --status-online-bg: rgba(34, 197, 94, 0.15);
+  --status-online-glow: rgba(34, 197, 94, 0.25);
   --status-offline: #ef4444;
-  --status-offline-bg: #fee2e2;
+  --status-offline-bg: rgba(239, 68, 68, 0.15);
+  --status-offline-glow: rgba(239, 68, 68, 0.25);
   --status-degraded: #f59e0b;
-  --status-degraded-bg: #fef3c7;
+  --status-degraded-bg: rgba(245, 158, 11, 0.15);
+  --status-degraded-glow: rgba(245, 158, 11, 0.25);
   --status-maintenance: #3b82f6;
-  --status-maintenance-bg: #dbeafe;
-  --status-unknown: #6b7280;
-  --status-unknown-bg: #f3f4f6;
+  --status-maintenance-bg: rgba(59, 130, 246, 0.15);
+  --status-maintenance-glow: rgba(59, 130, 246, 0.25);
+  --status-unknown: #64748b;
+  --status-unknown-bg: rgba(100, 116, 139, 0.15);
 
   /* Responsive Breakpoint System (mobile-first) */
   /* Breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px) */

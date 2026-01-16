@@ -31,16 +31,16 @@
 }
 
 .regional-status-toggle:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .regional-status-toggle:focus-visible {
-  outline: 2px solid var(--status-maintenance);
+  outline: 2px solid var(--color-primary, #22d3ee);
   outline-offset: 2px;
 }
 
 .regional-status-summary {
-  color: #6b7280;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 /* Chevron icon */
@@ -95,8 +95,8 @@
 }
 
 .regional-status-item-highlighted {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-left: 2px solid var(--status-maintenance);
+  background-color: rgba(34, 211, 238, 0.1);
+  border-left: 2px solid var(--color-primary, #22d3ee);
 }
 
 .regional-status-item-global {
@@ -106,7 +106,7 @@
 .region-label {
   font-weight: 500;
   min-width: 2.5rem;
-  color: #374151;
+  color: var(--color-text-primary, #f1f5f9);
 }
 
 /* Global variant */

@@ -34,7 +34,7 @@
 /* Connection label */
 .connection-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-text-tertiary, #64748b);
   font-weight: 500;
 }
 

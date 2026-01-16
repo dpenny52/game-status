@@ -12,7 +12,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d14 50%, #0a0a0f 100%);
+  background-attachment: fixed;
 }
 
 /* Header - Mobile first (phone)
@@ -24,8 +25,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, rgba(20, 20, 28, 0.95) 0%, rgba(20, 20, 28, 0.8) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
   /* Explicitly NOT fixed or sticky - scrolls with content */
   position: relative;
 }
@@ -40,13 +42,17 @@
   margin: 0 0 0.25rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-primary, #f1f5f9);
+  background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .dashboard-tagline {
   margin: 0;
   font-size: var(--font-size-min-body, 0.875rem);
-  color: #6b7280;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 /* Header actions container */
@@ -62,20 +68,22 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
-  background-color: #3b82f6;
+  color: #0a0a0f;
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
 }
 
 .dashboard-login-button:hover {
-  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.3);
 }
 
 .dashboard-login-button:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #22d3ee;
   outline-offset: 2px;
 }
 
@@ -83,7 +91,7 @@
 .dashboard-username {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary, #94a3b8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -121,7 +129,7 @@
 .dashboard-loading-text {
   margin: 0 0 1rem;
   font-size: var(--font-size-min-body, 0.875rem);
-  color: #6b7280;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 /* Skeleton grid - Mobile first: 2 columns */
@@ -134,21 +142,22 @@
 /* Footer - Mobile first (phone) */
 .dashboard-footer {
   padding: 0.75rem 1rem;
-  background-color: white;
-  border-top: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, rgba(20, 20, 28, 0.8) 0%, rgba(20, 20, 28, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
   text-align: center;
 }
 
 .footer-timestamp {
   margin: 0 0 0.25rem;
   font-size: var(--font-size-min-body, 0.875rem);
-  color: #4b5563;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 .footer-attribution {
   margin: 0;
   font-size: var(--font-size-min-small, 0.75rem);
-  color: #9ca3af;
+  color: var(--color-text-tertiary, #64748b);
 }
 
 /* Tablet and up (640px+) */

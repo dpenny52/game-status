@@ -52,13 +52,13 @@
   flex-shrink: 0;
 }
 
-/* Unfavorited state - gray outline */
+/* Unfavorited state - lighter gray for dark theme */
 .favorite-toggle-unfavorited {
-  color: #9ca3af; /* gray-400 */
+  color: #64748b; /* slate-500 */
 }
 
 .favorite-toggle-unfavorited:hover {
-  color: #6b7280; /* gray-500 */
+  color: #94a3b8; /* slate-400 */
 }
 
 /* Favorited state - gold/yellow with shine effect */

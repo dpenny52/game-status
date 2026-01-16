@@ -28,9 +28,11 @@
 
 /* Modal container */
 .modal {
-  background-color: var(--color-surface, #1a1a2e);
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.98) 0%, rgba(26, 26, 36, 0.95) 100%);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
+  border-radius: 16px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease-out;
@@ -69,7 +71,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-bottom: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
 }
 
 .modal-title {
@@ -101,7 +103,7 @@
 }
 
 .modal-close:focus {
-  outline: 2px solid var(--color-primary, #6366f1);
+  outline: 2px solid var(--color-primary, #22d3ee);
   outline-offset: 2px;
 }
 

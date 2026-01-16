@@ -8,7 +8,8 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: var(--color-background, #0f0f1a);
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d14 50%, #0a0a0f 100%);
+  background-attachment: fixed;
 }
 
 .verify-magic-link-container {
@@ -17,9 +18,12 @@
 }
 
 .verify-magic-link-card {
-  background-color: var(--color-surface, #1a1a2e);
-  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.95) 0%, rgba(26, 26, 36, 0.9) 100%);
+  border: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
+  border-radius: 16px;
   padding: 2rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
 }
 
 /* Loading state */
@@ -31,8 +35,8 @@
 .verify-magic-link-spinner {
   width: 48px;
   height: 48px;
-  border: 3px solid var(--color-border, rgba(255, 255, 255, 0.1));
-  border-top-color: var(--color-primary, #6366f1);
+  border: 3px solid var(--color-border, rgba(148, 163, 184, 0.12));
+  border-top-color: var(--color-primary, #22d3ee);
   border-radius: 50%;
   margin: 0 auto 1.5rem;
   animation: spin 1s linear infinite;
@@ -76,7 +80,7 @@
 }
 
 .verify-magic-link-link {
-  color: var(--color-primary, #6366f1);
+  color: var(--color-primary, #22d3ee);
   font-size: 0.875rem;
   text-decoration: none;
 }

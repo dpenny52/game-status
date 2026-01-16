@@ -16,10 +16,10 @@
 .email-alerts-section__title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-primary, #ffffff);
+  color: var(--color-text-primary, #f1f5f9);
   margin: 0 0 1.25rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-bottom: 1px solid var(--color-border, rgba(148, 163, 184, 0.12));
 }
 
 /* Description */
@@ -76,7 +76,7 @@
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--color-border, rgba(148, 163, 184, 0.1));
 }
 
 /* Game icon */

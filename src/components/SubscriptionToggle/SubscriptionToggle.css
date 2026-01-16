@@ -19,8 +19,8 @@
   padding: 4px;
   border: none;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #a0aec0;
+  background: rgba(20, 20, 28, 0.8);
+  color: #64748b;
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -29,12 +29,12 @@
 }
 
 .subscription-toggle__button:hover {
-  background: rgba(0, 0, 0, 0.7);
-  color: #e2e8f0;
+  background: rgba(30, 30, 40, 0.9);
+  color: #94a3b8;
 }
 
 .subscription-toggle__button:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-primary, #22d3ee);
   outline-offset: 2px;
 }
 
@@ -43,13 +43,13 @@
 }
 
 .subscription-toggle__button--subscribed {
-  color: #facc15;
-  background: rgba(250, 204, 21, 0.2);
+  color: #22d3ee;
+  background: rgba(34, 211, 238, 0.15);
 }
 
 .subscription-toggle__button--subscribed:hover {
-  color: #fde047;
-  background: rgba(250, 204, 21, 0.3);
+  color: #67e8f9;
+  background: rgba(34, 211, 238, 0.25);
 }
 
 .subscription-toggle__button--loading {
