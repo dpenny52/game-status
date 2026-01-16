@@ -96,7 +96,7 @@ async function authenticateBlizzard(
 ): Promise<string | null> {
   const tokenUrl = `https://${region}.battle.net/oauth/token`;
 
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const credentials = btoa(`${clientId}:${clientSecret}`);
 
   const result = await fetchWithTimeout<BlizzardTokenResponse>(tokenUrl, {
     method: "POST",
@@ -273,14 +273,8 @@ export const fetchStatus = internalAction({
             attemptNumber,
           });
 
-          // Schedule retry if attempts remaining
-          if (shouldRetry(attemptNumber)) {
-            await ctx.scheduler.runAfter(0, internal.statusFetcher.scheduleRetry, {
-              platform: "blizzard",
-              currentAttempt: attemptNumber,
-            });
-          }
-          return;
+          // Skip this region and continue with others
+          continue;
         }
 
         // Fetch status for each Blizzard game
