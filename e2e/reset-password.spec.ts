@@ -17,7 +17,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Password Reset Flow", () => {
   test("1. No token parameter shows error", async ({ page }) => {
     // Navigate to reset password page without token
-    await page.goto("http://localhost:5173/reset-password", { waitUntil: "networkidle" });
+    await page.goto("/reset-password", { waitUntil: "networkidle" });
 
     // Wait for error state to appear
     const errorState = page.locator('[data-testid="reset-password-error"]');
@@ -38,7 +38,7 @@ test.describe("Password Reset Flow", () => {
 
   test("2. Invalid token shows error state", async ({ page }) => {
     // Navigate to reset password page with invalid token
-    await page.goto("http://localhost:5173/reset-password?token=invalid-token-xyz", { waitUntil: "networkidle" });
+    await page.goto("/reset-password?token=invalid-token-xyz", { waitUntil: "networkidle" });
 
     // Wait for error state (token validation will fail from Convex)
     const errorState = page.locator('[data-testid="reset-password-error"]');
@@ -59,7 +59,7 @@ test.describe("Password Reset Flow", () => {
 
   test("3. Page loads correctly with validating state", async ({ page }) => {
     // Navigate to reset password page with a token
-    await page.goto("http://localhost:5173/reset-password?token=test-token-123", { waitUntil: "domcontentloaded" });
+    await page.goto("/reset-password?token=test-token-123", { waitUntil: "domcontentloaded" });
 
     // Check that either validating state or error state appears
     // (token will be invalid so error is expected after validation)
@@ -77,7 +77,7 @@ test.describe("Password Reset Flow", () => {
 
   test("4. Error state has return to home link", async ({ page }) => {
     // Navigate to reset password page without token
-    await page.goto("http://localhost:5173/reset-password", { waitUntil: "networkidle" });
+    await page.goto("/reset-password", { waitUntil: "networkidle" });
 
     // Wait for error state
     const errorState = page.locator('[data-testid="reset-password-error"]');
@@ -91,7 +91,7 @@ test.describe("Password Reset Flow", () => {
     await returnLink.first().click();
 
     // Should navigate to home page
-    await expect(page).toHaveURL(/localhost:5173\/?$/);
+    await expect(page).toHaveURL(/localhost:\d+\/?$/);
 
     // Take screenshot
     await page.screenshot({
@@ -104,7 +104,7 @@ test.describe("Password Reset Flow", () => {
 
   test("5. Reset password page UI elements", async ({ page }) => {
     // Navigate to reset password with token (will likely error but we can check initial render)
-    await page.goto("http://localhost:5173/reset-password?token=test-token-for-ui", { waitUntil: "domcontentloaded" });
+    await page.goto("/reset-password?token=test-token-for-ui", { waitUntil: "domcontentloaded" });
 
     // Wait for page to finish loading
     await page.waitForTimeout(2000);
@@ -125,7 +125,7 @@ test.describe("Password Reset Flow", () => {
   test("6. Password validation - weak password shows error", async ({ page }) => {
     // This test checks client-side validation
     // We need a valid token for the form to show, but we can test the UI
-    await page.goto("http://localhost:5173/reset-password?token=weak-password-test", { waitUntil: "networkidle" });
+    await page.goto("/reset-password?token=weak-password-test", { waitUntil: "networkidle" });
 
     // Wait for either form or error (depending on token validity)
     const pageState = page.locator('[data-testid="reset-password-page"], [data-testid="reset-password-error"]');
@@ -163,7 +163,7 @@ test.describe("Password Reset Flow", () => {
   });
 
   test("7. Password validation - passwords must match", async ({ page }) => {
-    await page.goto("http://localhost:5173/reset-password?token=mismatch-test", { waitUntil: "networkidle" });
+    await page.goto("/reset-password?token=mismatch-test", { waitUntil: "networkidle" });
 
     // Wait for page state
     const pageState = page.locator('[data-testid="reset-password-page"], [data-testid="reset-password-error"]');
@@ -201,7 +201,7 @@ test.describe("Password Reset Flow", () => {
 
   test("8. Page displays Reset Link Invalid heading on error", async ({ page }) => {
     // Navigate with invalid token
-    await page.goto("http://localhost:5173/reset-password?token=abc123invalid", { waitUntil: "networkidle" });
+    await page.goto("/reset-password?token=abc123invalid", { waitUntil: "networkidle" });
 
     // Wait for error state
     const errorState = page.locator('[data-testid="reset-password-error"]');

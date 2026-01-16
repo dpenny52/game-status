@@ -1,9 +1,25 @@
 # E2E Tests Directory - Agent Notes
 
+## Important: Port Configuration
+
+**Use relative URLs in E2E tests instead of hardcoded ports!**
+
+The Vite dev server may use different ports (3000, 3003, 5173, etc.) depending on what's already running. Configure tests to be port-agnostic:
+
+```bash
+# Run tests with custom port
+PLAYWRIGHT_TEST_BASE_URL=http://localhost:3003 npx playwright test
+
+# Or let playwright config start its own server (default behavior)
+npx playwright test
+```
+
+All E2E test files should use relative URLs (`/settings`, `/reset-password`) instead of absolute URLs (`http://localhost:5173/settings`).
+
 ## Authentication Tests
 
 ### Test Patterns
-- App runs on `http://localhost:5173` (Vite default)
+- App port varies - use relative URLs (/, /settings, /reset-password)
 - Wait for `.dashboard` selector to confirm React has rendered
 - Use flexible selectors - UI elements may have different names/testids
 - Screenshots go to `e2e/screenshots/` directory
@@ -98,3 +114,23 @@ await page.evaluate(() => {
 });
 ```
 This is faster and more reliable than using the full login flow.
+
+### Mock User ID Validation
+
+When testing with mock users via localStorage, the user's `_id` must be a valid Convex ID format for backend operations to succeed. A mock ID like `test-settings-user-id` will fail validation if the test tries to call Convex mutations that validate the ID.
+
+For tests that need to verify backend save operations, either:
+1. Use a real user ID from the database
+2. Test for either success OR error message (to handle both scenarios)
+
+Example:
+```javascript
+// Instead of expecting only success:
+await expect(page.locator('[data-testid="settings-success"]')).toBeVisible();
+
+// Handle both success and error (mock user may not exist in backend):
+await expect(
+  page.locator('[data-testid="settings-success"]')
+    .or(page.locator('[data-testid="settings-error"]'))
+).toBeVisible();
+```

@@ -18,7 +18,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Magic Link Verification Flow", () => {
   test("1. No token parameter shows error", async ({ page }) => {
     // Navigate to verify magic link page without token
-    await page.goto("http://localhost:5173/verify-magic-link", { waitUntil: "networkidle" });
+    await page.goto("/verify-magic-link", { waitUntil: "networkidle" });
 
     // Wait for error state to appear
     const errorState = page.locator('[data-testid="verify-magic-link-error"]');
@@ -39,7 +39,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("2. Invalid token shows error state", async ({ page }) => {
     // Navigate to verify magic link page with invalid token
-    await page.goto("http://localhost:5173/verify-magic-link?token=invalid-token-xyz", { waitUntil: "networkidle" });
+    await page.goto("/verify-magic-link?token=invalid-token-xyz", { waitUntil: "networkidle" });
 
     // Wait for error state (token verification will fail from Convex)
     const errorState = page.locator('[data-testid="verify-magic-link-error"]');
@@ -60,7 +60,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("3. Page loads correctly with verifying state", async ({ page }) => {
     // Navigate to verify magic link page with a token
-    await page.goto("http://localhost:5173/verify-magic-link?token=test-token-123", { waitUntil: "domcontentloaded" });
+    await page.goto("/verify-magic-link?token=test-token-123", { waitUntil: "domcontentloaded" });
 
     // Check that either verifying state or error state appears
     // (token will be invalid so error is expected after verification)
@@ -78,7 +78,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("4. Error state has return to home link", async ({ page }) => {
     // Navigate to verify magic link page without token
-    await page.goto("http://localhost:5173/verify-magic-link", { waitUntil: "networkidle" });
+    await page.goto("/verify-magic-link", { waitUntil: "networkidle" });
 
     // Wait for error state
     const errorState = page.locator('[data-testid="verify-magic-link-error"]');
@@ -92,7 +92,7 @@ test.describe("Magic Link Verification Flow", () => {
     await returnLink.click();
 
     // Should navigate to home page
-    await expect(page).toHaveURL(/localhost:5173\/?$/);
+    await expect(page).toHaveURL(/localhost:\d+\/?$/);
 
     // Take screenshot
     await page.screenshot({
@@ -105,7 +105,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("5. Verify magic link page UI elements", async ({ page }) => {
     // Navigate to verify magic link with token (will likely error but we can check initial render)
-    await page.goto("http://localhost:5173/verify-magic-link?token=test-token-for-ui", { waitUntil: "domcontentloaded" });
+    await page.goto("/verify-magic-link?token=test-token-for-ui", { waitUntil: "domcontentloaded" });
 
     // Wait for page to finish loading
     await page.waitForTimeout(2000);
@@ -125,7 +125,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("6. Page displays Magic Link Invalid heading on error", async ({ page }) => {
     // Navigate with invalid token
-    await page.goto("http://localhost:5173/verify-magic-link?token=abc123invalid", { waitUntil: "networkidle" });
+    await page.goto("/verify-magic-link?token=abc123invalid", { waitUntil: "networkidle" });
 
     // Wait for error state
     const errorState = page.locator('[data-testid="verify-magic-link-error"]');
@@ -146,7 +146,7 @@ test.describe("Magic Link Verification Flow", () => {
 
   test("7. Verifying spinner appears briefly", async ({ page }) => {
     // Navigate with token - check for verifying state
-    await page.goto("http://localhost:5173/verify-magic-link?token=spinner-test", { waitUntil: "domcontentloaded" });
+    await page.goto("/verify-magic-link?token=spinner-test", { waitUntil: "domcontentloaded" });
 
     // Either we catch the verifying state or it transitions to error quickly
     const verifyingOrError = page.locator('[data-testid="verify-magic-link-verifying"], [data-testid="verify-magic-link-error"]');

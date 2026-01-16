@@ -13,7 +13,7 @@ import { test, expect } from "@playwright/test";
 test.describe("GameStatus Dashboard", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app and wait for React to render
-    await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+    await page.goto("/", { waitUntil: "networkidle" });
 
     // Wait for the dashboard to render
     await page.waitForSelector(".dashboard", { timeout: 10000 });

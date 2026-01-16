@@ -23,14 +23,14 @@ const SIGNUP_USER = {
 test.describe("Authentication Flows", () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to ensure fresh state
-    await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+    await page.goto("/", { waitUntil: "networkidle" });
     await page.evaluate(() => localStorage.clear());
   });
 
   test.describe("Login Flow", () => {
     test("opens login modal from settings page", async ({ page }) => {
       // Navigate to settings page (has Sign In button when unauthenticated)
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for unauthenticated state
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -54,7 +54,7 @@ test.describe("Authentication Flows", () => {
 
     test("shows error for invalid credentials", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for unauthenticated state and click login
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -82,7 +82,7 @@ test.describe("Authentication Flows", () => {
 
     test("login form has forgot password link", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for unauthenticated state and click login
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -100,7 +100,7 @@ test.describe("Authentication Flows", () => {
   test.describe("Signup Flow", () => {
     test("opens signup modal from login modal", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for unauthenticated state and click login
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -128,7 +128,7 @@ test.describe("Authentication Flows", () => {
 
     test("signup form validates password requirements", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open signup modal
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -155,7 +155,7 @@ test.describe("Authentication Flows", () => {
   test.describe("Magic Link Flow", () => {
     test("shows magic link option in login modal", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -177,7 +177,7 @@ test.describe("Authentication Flows", () => {
 
     test("clicking magic link option shows email form", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -200,7 +200,7 @@ test.describe("Authentication Flows", () => {
 
     test("submitting magic link request shows confirmation", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal and switch to magic link
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -227,7 +227,7 @@ test.describe("Authentication Flows", () => {
   test.describe("Forgot Password Flow", () => {
     test("clicking forgot password opens forgot password form", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -250,7 +250,7 @@ test.describe("Authentication Flows", () => {
 
     test("forgot password form pre-fills email from login form", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -278,7 +278,7 @@ test.describe("Authentication Flows", () => {
 
     test("submitting forgot password shows success message", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal and go to forgot password
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -303,7 +303,7 @@ test.describe("Authentication Flows", () => {
 
     test("can navigate back to login from forgot password", async ({ page }) => {
       // Navigate to settings page
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Open login modal and go to forgot password
       await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
@@ -329,7 +329,7 @@ test.describe("Authentication Flows", () => {
   test.describe("Logout Flow", () => {
     test("logout button is visible for authenticated users", async ({ page }) => {
       // Set up authenticated state via localStorage
-      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+      await page.goto("/", { waitUntil: "networkidle" });
       await page.evaluate(() => {
         const mockUser = {
           _id: "test-user-id",
@@ -341,7 +341,7 @@ test.describe("Authentication Flows", () => {
       });
 
       // Navigate to settings
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for settings page (authenticated state)
       await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
@@ -359,7 +359,7 @@ test.describe("Authentication Flows", () => {
 
     test("logout clears user state", async ({ page }) => {
       // Set up authenticated state via localStorage
-      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+      await page.goto("/", { waitUntil: "networkidle" });
       await page.evaluate(() => {
         const mockUser = {
           _id: "test-user-id",
@@ -371,7 +371,7 @@ test.describe("Authentication Flows", () => {
       });
 
       // Navigate to settings
-      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+      await page.goto("/settings", { waitUntil: "networkidle" });
 
       // Wait for settings page (authenticated state)
       await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
@@ -401,7 +401,7 @@ test.describe("Authentication Flows", () => {
   test.describe("Dashboard Access", () => {
     test("dashboard is accessible without authentication", async ({ page }) => {
       // Navigate to dashboard
-      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+      await page.goto("/", { waitUntil: "networkidle" });
 
       // Verify dashboard loads
       await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });

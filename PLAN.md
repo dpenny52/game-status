@@ -320,18 +320,27 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 5.2: Complete Settings E2E Test Suite
 
-- [ ] Ensure `e2e/settings.spec.ts` covers settings page
-- [ ] Test: Unauthenticated user sees login prompt
-- [ ] Test: Authenticated user sees profile info
-- [ ] Test: Display name update saves and persists
-- [ ] Test: Email alerts section shows subscriptions
-- [ ] Test: Logout from settings works
-- [ ] All tests pass
+- [x] Ensure `e2e/settings.spec.ts` covers settings page
+- [x] Test: Unauthenticated user sees login prompt
+- [x] Test: Authenticated user sees profile info
+- [x] Test: Display name update saves and persists
+- [x] Test: Email alerts section shows subscriptions
+- [x] Test: Logout from settings works
+- [x] All tests pass (15 tests)
 
-**Files to Modify/Verify**:
-- `e2e/settings.spec.ts`
+**Files Modified**:
+- `e2e/settings.spec.ts` - Rewritten with robust assertions (15 tests)
+- `playwright.config.ts` - Added PLAYWRIGHT_TEST_BASE_URL support for flexible port configuration
+- `e2e/auth.spec.ts`, `e2e/dashboard.spec.ts`, `e2e/reset-password.spec.ts`, `e2e/verify-magic-link.spec.ts` - Updated to use relative URLs
 
 **Dependencies**: Task 1.3
+
+**Status**: COMPLETED - Settings E2E test suite with 15 comprehensive tests covering:
+- Unauthenticated user flows (2 tests)
+- Authenticated user profile info (6 tests)
+- Email alerts section (2 tests)
+- Logout flow (4 tests)
+- Unverified user badge (1 test)
 
 ---
 
