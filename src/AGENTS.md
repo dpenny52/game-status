@@ -26,6 +26,8 @@ catch (err) { ... }
 - `api.auth.login` - Email/password login
 - `api.auth.signUp` - New account creation
 - `api.auth.updateDisplayName` - Profile updates
+- `api.auth.requestMagicLink` - Passwordless magic link request
+- `api.auth.requestPasswordReset` - Password reset link request
 
 ### Local Storage
 - Key: `gamestatus_auth`
@@ -90,6 +92,29 @@ mockUseQuery.mockReturnValue({ valid: false, error: "..." }); // For invalid tok
 - `verify-magic-link-verifying` - Verifying token state (with spinner)
 - `verify-magic-link-error` - Error state for invalid/missing/expired token
 - `verify-magic-link-success` - Success state with redirect message
+
+## ForgotPasswordModal Component
+
+### Purpose
+Modal for requesting password reset links via email. Always shows success message regardless of whether email exists (prevents email enumeration attacks).
+
+### Convex Integration
+- Uses `AuthContext.requestPasswordReset` which calls `api.auth.requestPasswordReset`
+- Returns `{ success: boolean; message: string }` from Convex
+
+### Test IDs
+- `forgot-password-email-input` - Email input field
+- `forgot-password-submit` - Submit button
+- `forgot-password-error` - Error message container
+- `forgot-password-success` - Success state container
+- `forgot-password-back-link` - Back to login link in form state
+- `back-to-login-button` - Back to login button in success state
+
+### Testing Notes
+- Use `fireEvent.submit(form)` instead of clicking submit button for reliable tests
+- The modal uses conditional rendering for error state (only shows when error !== null)
+- Backend validation errors containing "Invalid email" are shown to user
+- All other errors (network, etc.) show success to prevent enumeration
 
 ## Routing
 

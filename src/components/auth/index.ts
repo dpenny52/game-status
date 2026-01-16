@@ -19,3 +19,6 @@ export type { LoginModalProps } from "./LoginModal";
 
 export { SignupModal } from "./SignupModal";
 export type { SignupModalProps } from "./SignupModal";
+
+export { ForgotPasswordModal } from "./ForgotPasswordModal";
+export type { ForgotPasswordModalProps } from "./ForgotPasswordModal";

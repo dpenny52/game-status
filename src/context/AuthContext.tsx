@@ -58,6 +58,8 @@ export interface AuthContextType extends AuthState {
   updateDisplayName: (displayName: string) => Promise<void>;
   /** Request a magic link for passwordless authentication */
   requestMagicLink: (email: string) => Promise<void>;
+  /** Request a password reset link */
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; message: string }>;
   /** Set user from external source (OAuth callback, etc.) */
   setUser: (user: User | null) => void;
   /** Open login modal */
@@ -108,6 +110,7 @@ export function AuthProvider({
   const signUpMutation = useMutation(api.auth.signUp);
   const updateDisplayNameMutation = useMutation(api.auth.updateDisplayName);
   const requestMagicLinkMutation = useMutation(api.auth.requestMagicLink);
+  const requestPasswordResetMutation = useMutation(api.auth.requestPasswordReset);
 
   // Load persisted auth state on mount
   useEffect(() => {
@@ -246,6 +249,15 @@ export function AuthProvider({
     [requestMagicLinkMutation]
   );
 
+  // Request password reset using Convex mutation
+  const requestPasswordReset = useCallback(
+    async (email: string): Promise<{ success: boolean; message: string }> => {
+      const result = await requestPasswordResetMutation({ email });
+      return result;
+    },
+    [requestPasswordResetMutation]
+  );
+
   // Modal controls
   const openLoginModal = useCallback(() => setModalState("login"), []);
   const openSignupModal = useCallback(() => setModalState("signup"), []);
@@ -260,6 +272,7 @@ export function AuthProvider({
     logout,
     updateDisplayName,
     requestMagicLink,
+    requestPasswordReset,
     setUser,
     openLoginModal,
     openSignupModal,

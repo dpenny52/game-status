@@ -20,6 +20,7 @@ const mockLoginMutation = vi.fn();
 const mockSignUpMutation = vi.fn();
 const mockUpdateDisplayNameMutation = vi.fn();
 const mockRequestMagicLinkMutation = vi.fn();
+const mockRequestPasswordResetMutation = vi.fn();
 
 vi.mock("convex/react", () => ({
   useMutation: vi.fn((api: string) => {
@@ -27,6 +28,7 @@ vi.mock("convex/react", () => ({
     if (api === "auth:signUp") return mockSignUpMutation;
     if (api === "auth:updateDisplayName") return mockUpdateDisplayNameMutation;
     if (api === "auth:requestMagicLink") return mockRequestMagicLinkMutation;
+    if (api === "auth:requestPasswordReset") return mockRequestPasswordResetMutation;
     return vi.fn();
   }),
 }));
@@ -38,6 +40,7 @@ vi.mock("../../convex/_generated/api", () => ({
       signUp: "auth:signUp",
       updateDisplayName: "auth:updateDisplayName",
       requestMagicLink: "auth:requestMagicLink",
+      requestPasswordReset: "auth:requestPasswordReset",
     },
   },
 }));
@@ -68,15 +71,19 @@ function TestConsumer({
   onSignup,
   onUpdateDisplayName,
   onRequestMagicLink,
+  onRequestPasswordReset,
 }: {
   onLogin?: (email: string, password: string) => void;
   onSignup?: (email: string, password: string, displayName: string) => void;
   onUpdateDisplayName?: (displayName: string) => void;
   onRequestMagicLink?: (email: string) => void;
+  onRequestPasswordReset?: (email: string) => void;
 }) {
-  const { user, isAuthenticated, isLoading, login, signup, updateDisplayName, requestMagicLink, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, login, signup, updateDisplayName, requestMagicLink, requestPasswordReset, logout } = useAuth();
   const [magicLinkError, setMagicLinkError] = React.useState<string | null>(null);
   const [magicLinkSuccess, setMagicLinkSuccess] = React.useState(false);
+  const [passwordResetError, setPasswordResetError] = React.useState<string | null>(null);
+  const [passwordResetSuccess, setPasswordResetSuccess] = React.useState(false);
 
   return (
     <div>
@@ -86,6 +93,8 @@ function TestConsumer({
       <div data-testid="user-display-name">{user?.displayName || "no-name"}</div>
       <div data-testid="magic-link-error">{magicLinkError || ""}</div>
       <div data-testid="magic-link-success">{magicLinkSuccess.toString()}</div>
+      <div data-testid="password-reset-error">{passwordResetError || ""}</div>
+      <div data-testid="password-reset-success">{passwordResetSuccess.toString()}</div>
       <button
         data-testid="login-btn"
         onClick={async () => {
@@ -142,6 +151,21 @@ function TestConsumer({
       </button>
       <button data-testid="logout-btn" onClick={logout}>
         Logout
+      </button>
+      <button
+        data-testid="request-password-reset-btn"
+        onClick={async () => {
+          try {
+            setPasswordResetError(null);
+            await requestPasswordReset("reset@example.com");
+            setPasswordResetSuccess(true);
+            onRequestPasswordReset?.("reset@example.com");
+          } catch (error) {
+            setPasswordResetError(error instanceof Error ? error.message : "Request failed");
+          }
+        }}
+      >
+        Request Password Reset
       </button>
     </div>
   );
@@ -597,6 +621,90 @@ describe("AuthContext", () => {
       // Verify error is captured
       await waitFor(() => {
         expect(screen.getByTestId("magic-link-error").textContent).toBe("Invalid email format");
+      });
+    });
+  });
+
+  describe("Request Password Reset", () => {
+    it("calls requestPasswordReset mutation with email", async () => {
+      mockRequestPasswordResetMutation.mockResolvedValueOnce({
+        success: true,
+        message: "If an account exists with this email, a password reset link has been sent",
+      });
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request password reset
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-password-reset-btn"));
+      });
+
+      // Verify mutation was called with correct args
+      expect(mockRequestPasswordResetMutation).toHaveBeenCalledWith({
+        email: "reset@example.com",
+      });
+    });
+
+    it("returns success after password reset request", async () => {
+      mockRequestPasswordResetMutation.mockResolvedValueOnce({
+        success: true,
+        message: "If an account exists with this email, a password reset link has been sent",
+      });
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request password reset
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-password-reset-btn"));
+      });
+
+      // Verify success state
+      await waitFor(() => {
+        expect(screen.getByTestId("password-reset-success").textContent).toBe("true");
+      });
+    });
+
+    it("handles error for invalid email format", async () => {
+      const error = new Error("Invalid email format");
+      mockRequestPasswordResetMutation.mockRejectedValueOnce(error);
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request password reset (should fail)
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-password-reset-btn"));
+      });
+
+      // Verify error is captured
+      await waitFor(() => {
+        expect(screen.getByTestId("password-reset-error").textContent).toBe("Invalid email format");
       });
     });
   });
