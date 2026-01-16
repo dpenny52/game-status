@@ -9,6 +9,7 @@
  */
 import React, { useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 import { LoginModal } from "./LoginModal";
 import { SignupModal } from "./SignupModal";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
@@ -50,6 +51,13 @@ export function AuthModals(): JSX.Element | null {
     setForgotPasswordEmail,
   } = useAuth();
 
+  const { showSuccess } = useToast();
+
+  // Handle successful signup
+  const handleSignupSuccess = useCallback(() => {
+    showSuccess("Account created successfully! Welcome to GameStatus.");
+  }, [showSuccess]);
+
   // Handle forgot password from login modal
   const handleForgotPassword = useCallback(
     (email: string) => {
@@ -86,7 +94,8 @@ export function AuthModals(): JSX.Element | null {
         isOpen={modalState === "signup"}
         onClose={closeAuthModals}
         onSwitchToLogin={openLoginModal}
-        onSignup={signup}
+        onPasswordSignup={signup}
+        onSignupSuccess={handleSignupSuccess}
       />
 
       {/* Forgot Password Modal */}

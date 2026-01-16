@@ -245,6 +245,140 @@ describe("SignupModal Component", () => {
     fireEvent.click(screen.getByTestId("switch-to-login"));
     expect(onSwitchToLogin).toHaveBeenCalled();
   });
+
+  it("should call onPasswordSignup with correct arguments on valid form submission", async () => {
+    const onPasswordSignup = vi.fn().mockResolvedValue(undefined);
+    const onSignupSuccess = vi.fn();
+    render(
+      <SignupModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToLogin={vi.fn()}
+        onPasswordSignup={onPasswordSignup}
+        onSignupSuccess={onSignupSuccess}
+      />
+    );
+
+    // Fill in valid form data
+    await fireEvent.change(screen.getByTestId("signup-email-input"), {
+      target: { value: "test@example.com" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-displayname-input"), {
+      target: { value: "Test User" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-password-input"), {
+      target: { value: "Password123!" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-confirm-password-input"), {
+      target: { value: "Password123!" },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("signup-submit-button"));
+
+    await waitFor(() => {
+      expect(onPasswordSignup).toHaveBeenCalledWith(
+        "test@example.com",
+        "Password123!",
+        "Test User"
+      );
+    });
+
+    await waitFor(() => {
+      expect(onSignupSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it("should display error message when signup fails", async () => {
+    const onPasswordSignup = vi.fn().mockRejectedValue(new Error("Email already exists"));
+    render(
+      <SignupModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToLogin={vi.fn()}
+        onPasswordSignup={onPasswordSignup}
+      />
+    );
+
+    // Fill in valid form data
+    await fireEvent.change(screen.getByTestId("signup-email-input"), {
+      target: { value: "existing@example.com" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-displayname-input"), {
+      target: { value: "Test User" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-password-input"), {
+      target: { value: "Password123!" },
+    });
+    await fireEvent.change(screen.getByTestId("signup-confirm-password-input"), {
+      target: { value: "Password123!" },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("signup-submit-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("signup-error")).toBeInTheDocument();
+      expect(screen.getByText("Email already exists")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("LoginModal - Error Handling", () => {
+  it("should display error message when login fails with invalid credentials", async () => {
+    const onPasswordLogin = vi.fn().mockRejectedValue(new Error("Invalid email or password"));
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToSignup={vi.fn()}
+        onPasswordLogin={onPasswordLogin}
+      />
+    );
+
+    // Fill in credentials
+    await fireEvent.change(screen.getByTestId("login-email-input"), {
+      target: { value: "test@example.com" },
+    });
+    await fireEvent.change(screen.getByTestId("login-password-input"), {
+      target: { value: "wrongpassword" },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("login-submit-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("login-error")).toBeInTheDocument();
+      expect(screen.getByText("Invalid email or password")).toBeInTheDocument();
+    });
+  });
+
+  it("should call onPasswordLogin with correct credentials", async () => {
+    const onPasswordLogin = vi.fn().mockResolvedValue(undefined);
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToSignup={vi.fn()}
+        onPasswordLogin={onPasswordLogin}
+      />
+    );
+
+    // Fill in credentials
+    await fireEvent.change(screen.getByTestId("login-email-input"), {
+      target: { value: "user@example.com" },
+    });
+    await fireEvent.change(screen.getByTestId("login-password-input"), {
+      target: { value: "TestPassword123" },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("login-submit-button"));
+
+    await waitFor(() => {
+      expect(onPasswordLogin).toHaveBeenCalledWith("user@example.com", "TestPassword123");
+    });
+  });
 });
 
 describe("PasswordStrengthIndicator Component", () => {

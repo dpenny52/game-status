@@ -98,6 +98,112 @@ test.describe("Authentication Flows", () => {
   });
 
   test.describe("Signup Flow", () => {
+    test("completes full signup flow and creates user", async ({ page }) => {
+      // Generate unique email for this test run
+      const uniqueEmail = `e2e-full-signup-${Date.now()}@example.com`;
+      const testPassword = "TestPassword123!";
+      const testDisplayName = "E2E Full Test";
+
+      // Navigate to dashboard
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Open login modal from dashboard
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="dashboard-login-button"]').click();
+
+      // Wait for login modal and switch to signup
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="switch-to-signup"]').click();
+
+      // Wait for signup modal
+      await expect(page.locator('[data-testid="signup-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Fill in valid signup form
+      await page.locator('[data-testid="signup-email-input"]').fill(uniqueEmail);
+      await page.locator('[data-testid="signup-displayname-input"]').fill(testDisplayName);
+      await page.locator('[data-testid="signup-password-input"]').fill(testPassword);
+      await page.locator('[data-testid="signup-confirm-password-input"]').fill(testPassword);
+
+      // Submit signup form
+      await page.locator('[data-testid="signup-submit-button"]').click();
+
+      // Wait for signup to complete - modal should close and toast should appear
+      await expect(page.locator('[data-testid="signup-email-input"]')).not.toBeVisible({ timeout: 10000 });
+
+      // Verify success toast appears
+      await expect(page.locator('[data-testid="toast"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="toast"]')).toContainText("Account created successfully");
+
+      // Verify user is logged in - Sign In button should be hidden
+      await expect(page.locator('[data-testid="dashboard-login-button"]')).not.toBeVisible({ timeout: 5000 });
+
+      // Navigate to settings to verify user data
+      await page.goto("/settings", { waitUntil: "networkidle" });
+
+      // Verify authenticated state with correct display name
+      await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="profile-display-name"]')).toContainText(testDisplayName);
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-full-signup-success.png",
+        fullPage: true,
+      });
+    });
+
+    test("can login after signup with same credentials", async ({ page }) => {
+      // Generate unique email for this test run
+      const uniqueEmail = `e2e-login-after-signup-${Date.now()}@example.com`;
+      const testPassword = "TestPassword123!";
+      const testDisplayName = "Login After Signup";
+
+      // First, complete signup
+      await page.goto("/", { waitUntil: "networkidle" });
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="dashboard-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="switch-to-signup"]').click();
+      await expect(page.locator('[data-testid="signup-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      await page.locator('[data-testid="signup-email-input"]').fill(uniqueEmail);
+      await page.locator('[data-testid="signup-displayname-input"]').fill(testDisplayName);
+      await page.locator('[data-testid="signup-password-input"]').fill(testPassword);
+      await page.locator('[data-testid="signup-confirm-password-input"]').fill(testPassword);
+      await page.locator('[data-testid="signup-submit-button"]').click();
+
+      // Wait for signup to complete
+      await expect(page.locator('[data-testid="signup-email-input"]')).not.toBeVisible({ timeout: 10000 });
+
+      // Now logout
+      await page.goto("/settings", { waitUntil: "networkidle" });
+      await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-logout-button"]').click();
+      await expect(page.locator('[data-testid="settings-confirm-logout"]')).toBeVisible({ timeout: 3000 });
+      await page.locator('[data-testid="settings-confirm-logout"]').click();
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+
+      // Now login with the same credentials
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      await page.locator('[data-testid="login-email-input"]').fill(uniqueEmail);
+      await page.locator('[data-testid="login-password-input"]').fill(testPassword);
+      await page.locator('[data-testid="login-submit-button"]').click();
+
+      // Wait for login to complete - modal should close
+      await expect(page.locator('[data-testid="login-email-input"]')).not.toBeVisible({ timeout: 10000 });
+
+      // Verify user is logged in with correct display name
+      await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="profile-display-name"]')).toContainText(testDisplayName);
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-login-after-signup.png",
+        fullPage: true,
+      });
+    });
+
     test("opens signup modal from login modal", async ({ page }) => {
       // Navigate to settings page
       await page.goto("/settings", { waitUntil: "networkidle" });

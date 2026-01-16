@@ -66,8 +66,9 @@ export function Toast({ toast, onDismiss }: ToastProps): React.JSX.Element {
       className={`toast toast--${variant} ${isExiting ? "toast--exiting" : ""}`}
       role="alert"
       aria-live="polite"
+      data-testid="toast"
     >
-      <span className="toast__message">{toast.message}</span>
+      <span className="toast__message" data-testid="toast-message">{toast.message}</span>
       <button
         type="button"
         className="toast__dismiss"
