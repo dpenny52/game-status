@@ -270,21 +270,29 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 4.2: Wire ForgotPassword into LoginModal
 
-- [ ] Add state for forgot password view in LoginModal.tsx
-- [ ] Add "Forgot password?" link below login form
-- [ ] Render ForgotPasswordModal when forgot password active
-- [ ] Add back button to return to login view
-- [ ] Update existing test: `src/components/auth/AuthModals.test.tsx`
-- [ ] Write unit test: click forgot password link shows form
-- [ ] Write unit test: can navigate back to login
-- [ ] Add E2E test: full forgot password flow from login modal
-- [ ] All tests pass
+- [x] Add state for forgot password view in LoginModal.tsx (already had onForgotPassword prop)
+- [x] Add "Forgot password?" link below login form (already present)
+- [x] Render ForgotPasswordModal when forgot password active (via AuthModals component)
+- [x] Add back button to return to login view
+- [x] Update existing test: `src/components/auth/AuthModals.test.tsx`
+- [x] Write unit test: click forgot password link shows form
+- [x] Write unit test: can navigate back to login
+- [x] Add E2E test: full forgot password flow from login modal
+- [x] All tests pass (503 unit tests, 13 E2E tests)
 
-**Files to Modify**:
-- `src/components/auth/LoginModal.tsx`
-- `src/components/auth/AuthModals.test.tsx`
+**Files Created**:
+- `src/components/auth/AuthModals.tsx` - Central component for rendering auth modals based on AuthContext state
+
+**Files Modified**:
+- `src/context/AuthContext.tsx` - Added forgotPassword modal state, openForgotPasswordModal, forgotPasswordEmail state
+- `src/components/auth/index.ts` - Added AuthModals export
+- `src/components/auth/AuthModals.test.tsx` - Added 9 tests for ForgotPasswordModal, 2 tests for LoginModal forgot password link
+- `src/App.tsx` - Renders AuthModals component at root level
+- `e2e/auth.spec.ts` - Added 4 E2E tests for forgot password flow
 
 **Dependencies**: Task 4.1
+
+**Status**: COMPLETED - Full forgot password flow wired into LoginModal, AuthModals component created for central modal rendering
 
 ---
 

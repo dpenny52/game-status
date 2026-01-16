@@ -12,6 +12,7 @@ import { Modal } from "./Modal";
 import { LoginModal } from "./LoginModal";
 import { SignupModal } from "./SignupModal";
 import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 // Cleanup after each test
 afterEach(() => {
@@ -150,6 +151,42 @@ describe("LoginModal Component", () => {
     expect(screen.getByTestId("magic-link-email-input")).toBeInTheDocument();
     expect(screen.getByTestId("magic-link-submit")).toBeInTheDocument();
   });
+
+  it("should call onForgotPassword when forgot password link is clicked", () => {
+    const onForgotPassword = vi.fn();
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToSignup={vi.fn()}
+        onForgotPassword={onForgotPassword}
+      />
+    );
+
+    // Enter email first
+    const emailInput = screen.getByTestId("login-email-input");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+
+    // Click forgot password link
+    fireEvent.click(screen.getByTestId("forgot-password-link"));
+    expect(onForgotPassword).toHaveBeenCalledWith("test@example.com");
+  });
+
+  it("should call onForgotPassword with empty string when no email entered", () => {
+    const onForgotPassword = vi.fn();
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSwitchToSignup={vi.fn()}
+        onForgotPassword={onForgotPassword}
+      />
+    );
+
+    // Click forgot password without entering email
+    fireEvent.click(screen.getByTestId("forgot-password-link"));
+    expect(onForgotPassword).toHaveBeenCalledWith("");
+  });
 });
 
 describe("SignupModal Component", () => {
@@ -257,5 +294,164 @@ describe("PasswordStrengthIndicator Component", () => {
 
     expect(screen.getByLabelText("Password requirements")).toBeInTheDocument();
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-label");
+  });
+});
+
+describe("ForgotPasswordModal Component", () => {
+  it("should render with email input form", () => {
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId("forgot-password-email-input")).toBeInTheDocument();
+    expect(screen.getByTestId("forgot-password-submit")).toBeInTheDocument();
+    expect(screen.getByTestId("forgot-password-back-link")).toBeInTheDocument();
+  });
+
+  it("should pre-fill email from initialEmail prop", () => {
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={vi.fn()}
+        initialEmail="test@example.com"
+      />
+    );
+
+    const emailInput = screen.getByTestId("forgot-password-email-input") as HTMLInputElement;
+    expect(emailInput.value).toBe("test@example.com");
+  });
+
+  it("should call onBackToLogin when back link is clicked", () => {
+    const onBackToLogin = vi.fn();
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={onBackToLogin}
+        onRequestReset={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId("forgot-password-back-link"));
+    expect(onBackToLogin).toHaveBeenCalled();
+  });
+
+  it("should show validation error for empty email", async () => {
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={vi.fn()}
+      />
+    );
+
+    // Submit form with empty email
+    fireEvent.click(screen.getByTestId("forgot-password-submit"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("forgot-password-error")).toBeInTheDocument();
+      expect(screen.getByText("Email is required")).toBeInTheDocument();
+    });
+  });
+
+  it("should call onRequestReset with email on valid submit", async () => {
+    const onRequestReset = vi.fn().mockResolvedValue({ success: true, message: "Email sent" });
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={onRequestReset}
+      />
+    );
+
+    // Enter valid email
+    const emailInput = screen.getByTestId("forgot-password-email-input");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("forgot-password-submit"));
+
+    await waitFor(() => {
+      expect(onRequestReset).toHaveBeenCalledWith("test@example.com");
+    });
+  });
+
+  it("should show success message after request is sent", async () => {
+    const onRequestReset = vi.fn().mockResolvedValue({ success: true, message: "Email sent" });
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={onRequestReset}
+      />
+    );
+
+    // Enter valid email and submit
+    const emailInput = screen.getByTestId("forgot-password-email-input");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.click(screen.getByTestId("forgot-password-submit"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("forgot-password-success")).toBeInTheDocument();
+    });
+  });
+
+  it("should show success message even on backend error (prevent email enumeration)", async () => {
+    const onRequestReset = vi.fn().mockRejectedValue(new Error("User not found"));
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={vi.fn()}
+        onRequestReset={onRequestReset}
+      />
+    );
+
+    // Enter valid email and submit
+    const emailInput = screen.getByTestId("forgot-password-email-input");
+    fireEvent.change(emailInput, { target: { value: "nonexistent@example.com" } });
+    fireEvent.click(screen.getByTestId("forgot-password-submit"));
+
+    await waitFor(() => {
+      // Should still show success to prevent enumeration
+      expect(screen.getByTestId("forgot-password-success")).toBeInTheDocument();
+    });
+  });
+
+  it("should have back to login button in success state", async () => {
+    const onBackToLogin = vi.fn();
+    const onRequestReset = vi.fn().mockResolvedValue({ success: true, message: "Email sent" });
+    render(
+      <ForgotPasswordModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onBackToLogin={onBackToLogin}
+        onRequestReset={onRequestReset}
+      />
+    );
+
+    // Submit valid email
+    const emailInput = screen.getByTestId("forgot-password-email-input");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.click(screen.getByTestId("forgot-password-submit"));
+
+    // Wait for success state
+    await waitFor(() => {
+      expect(screen.getByTestId("forgot-password-success")).toBeInTheDocument();
+    });
+
+    // Click back to login button in success state
+    fireEvent.click(screen.getByTestId("back-to-login-button"));
+    expect(onBackToLogin).toHaveBeenCalled();
   });
 });

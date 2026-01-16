@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
+import { AuthModals } from "./components/auth";
 import { Dashboard } from "./pages/Dashboard";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Settings } from "./pages/Settings";
@@ -30,6 +31,7 @@ export function App(): JSX.Element {
         <AuthProvider>
           <ToastProvider>
             <div className="app">
+              <AuthModals />
               <Routes>
                 <Route path="/" element={<Dashboard useConvex={false} />} />
                 <Route path="/settings" element={<Settings />} />
@@ -49,6 +51,7 @@ export function App(): JSX.Element {
         <AuthProvider>
           <ToastProvider>
             <div className="app">
+              <AuthModals />
               <Routes>
                 <Route path="/" element={<Dashboard useConvex={true} />} />
                 <Route path="/settings" element={<Settings />} />

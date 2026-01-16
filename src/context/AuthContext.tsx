@@ -69,7 +69,13 @@ export interface AuthContextType extends AuthState {
   /** Close auth modals */
   closeAuthModals: () => void;
   /** Current modal state */
-  modalState: "login" | "signup" | null;
+  modalState: "login" | "signup" | "forgotPassword" | null;
+  /** Open forgot password modal */
+  openForgotPasswordModal: () => void;
+  /** Email to pre-fill in forgot password modal */
+  forgotPasswordEmail: string;
+  /** Set email for forgot password modal */
+  setForgotPasswordEmail: (email: string) => void;
 }
 
 // Create context with undefined default
@@ -103,7 +109,8 @@ export function AuthProvider({
 }): JSX.Element {
   const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [modalState, setModalState] = useState<"login" | "signup" | null>(null);
+  const [modalState, setModalState] = useState<"login" | "signup" | "forgotPassword" | null>(null);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
 
   // Convex mutations for authentication
   const loginMutation = useMutation(api.auth.login);
@@ -261,7 +268,11 @@ export function AuthProvider({
   // Modal controls
   const openLoginModal = useCallback(() => setModalState("login"), []);
   const openSignupModal = useCallback(() => setModalState("signup"), []);
-  const closeAuthModals = useCallback(() => setModalState(null), []);
+  const openForgotPasswordModal = useCallback(() => setModalState("forgotPassword"), []);
+  const closeAuthModals = useCallback(() => {
+    setModalState(null);
+    setForgotPasswordEmail("");
+  }, []);
 
   const value: AuthContextType = {
     user,
@@ -276,8 +287,11 @@ export function AuthProvider({
     setUser,
     openLoginModal,
     openSignupModal,
+    openForgotPasswordModal,
     closeAuthModals,
     modalState,
+    forgotPasswordEmail,
+    setForgotPasswordEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

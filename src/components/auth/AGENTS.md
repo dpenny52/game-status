@@ -68,3 +68,31 @@ vi.mock("../../context/AuthContext", () => ({
 - `.auth-button-primary` - Main action button
 - `.auth-link-button` - Text link button
 - `.form-input` / `.form-input-error` - Input fields
+
+## AuthModals Component
+
+Central component that renders all auth modals based on AuthContext state.
+
+```typescript
+// Renders at App.tsx root level
+<AuthModals />
+```
+
+### Modal State Flow
+- `modalState` in AuthContext: `"login" | "signup" | "forgotPassword" | null`
+- Forgot password uses `forgotPasswordEmail` state to pre-fill email from login form
+- Transitions: login → forgotPassword → login (back)
+
+### Wiring LoginModal to ForgotPasswordModal
+```typescript
+const handleForgotPassword = (email: string) => {
+  setForgotPasswordEmail(email);
+  openForgotPasswordModal();
+};
+```
+
+## Testing Gotchas
+
+- When testing form validation, **use props for initial values** (e.g., `initialEmail`)
+- Avoid `fireEvent.change` for pre-filling then immediately submitting - React state may not update in time
+- Empty state tests (`""`) are reliable; dynamic value tests may fail due to React async state
