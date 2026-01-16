@@ -1,7 +1,8 @@
 /**
  * PlatformSection Styles
  *
- * Styling for platform section with collapsible header and game grid.
+ * Styling for platform section with collapsible header and responsive game grid.
+ * Uses mobile-first approach with breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px)
  */
 
 .platform-section {
@@ -11,17 +12,19 @@
   background-color: white;
 }
 
-/* Header */
+/* Header - Mobile first (phone) */
 .platform-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1rem;
   background-color: #f9fafb;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  /* Touch target: minimum 44px height */
+  min-height: var(--touch-target-min, 44px);
 }
 
 .platform-section-header:hover {
@@ -36,30 +39,33 @@
 .platform-section-header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .platform-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .platform-name {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #111827;
+  /* Minimum 14px body text */
+  min-font-size: var(--font-size-min-body, 0.875rem);
 }
 
 .platform-section-header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .platform-summary {
-  font-size: 0.875rem;
+  font-size: var(--font-size-min-body, 0.875rem);
   color: #6b7280;
   font-weight: 500;
 }
@@ -84,9 +90,9 @@
   transform: rotate(180deg);
 }
 
-/* Content */
+/* Content - Mobile first (phone) */
 .platform-section-content {
-  padding: 1.25rem;
+  padding: 0.75rem;
   border-top: 1px solid #e5e7eb;
   animation: fadeIn 0.2s ease;
 }
@@ -100,21 +106,35 @@
   }
 }
 
-/* Game card grid */
+/* Game card grid - Mobile first (phone): 2 columns */
 .game-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--grid-gap-mobile, 0.75rem);
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
+/* Tablet and up (640px+): 2 columns */
+@media (min-width: 640px) {
   .platform-section-header {
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .platform-section-header-left {
+    gap: 0.75rem;
+  }
+
+  .platform-icon {
+    width: 2rem;
+    height: 2rem;
   }
 
   .platform-name {
-    font-size: 1rem;
+    font-size: 1.125rem;
+  }
+
+  .platform-section-header-right {
+    gap: 0.75rem;
   }
 
   .platform-section-content {
@@ -122,6 +142,20 @@
   }
 
   .game-card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--grid-gap-tablet, 1rem);
+  }
+}
+
+/* Desktop (1025px+): 3+ columns with auto-fill and minmax */
+@media (min-width: 1025px) {
+  .platform-section-content {
+    padding: 1.25rem;
+  }
+
+  .game-card-grid {
+    /* Auto-fill with minmax allows fluid 3+ columns on desktop */
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width, 280px), 1fr));
+    gap: var(--grid-gap-desktop, 1rem);
   }
 }

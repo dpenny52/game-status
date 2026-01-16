@@ -50,4 +50,35 @@ body {
   --status-maintenance-bg: #dbeafe;
   --status-unknown: #6b7280;
   --status-unknown-bg: #f3f4f6;
+
+  /* Responsive Breakpoint System (mobile-first) */
+  /* Breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px) */
+  --breakpoint-phone-max: 639px;
+  --breakpoint-tablet-min: 640px;
+  --breakpoint-tablet-max: 1024px;
+  --breakpoint-desktop-min: 1025px;
+
+  /* Touch target sizing - WCAG 2.1 AA compliant */
+  --touch-target-min: 44px;
+  --touch-target-gap: 8px;
+
+  /* Typography minimums for readability */
+  --font-size-min-body: 0.875rem; /* 14px minimum */
+  --font-size-min-small: 0.75rem; /* 12px minimum for secondary text */
+
+  /* Spacing scale - mobile-first (smaller on mobile) */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 0.75rem;  /* 12px */
+  --spacing-lg: 1rem;     /* 16px */
+  --spacing-xl: 1.5rem;   /* 24px */
+  --spacing-2xl: 2rem;    /* 32px */
+
+  /* Grid gaps */
+  --grid-gap-mobile: 0.75rem;  /* 12px */
+  --grid-gap-tablet: 1rem;     /* 16px */
+  --grid-gap-desktop: 1rem;    /* 16px */
+
+  /* Card minimum width for desktop grid */
+  --card-min-width: 280px;
 }

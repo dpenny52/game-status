@@ -2,6 +2,9 @@
  * Dashboard Page Styles
  *
  * Styling for the main dashboard layout including header, content, and footer.
+ * Uses mobile-first approach with breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px)
+ *
+ * Header behavior: scrolls with page content (not fixed/sticky)
  */
 
 .dashboard {
@@ -11,31 +14,36 @@
   background-color: #f9fafb;
 }
 
-/* Header */
+/* Header - Mobile first (phone)
+ * Note: Header scrolls with content, NOT position: fixed
+ * This maximizes viewport space for game cards on mobile
+ */
 .dashboard-header {
-  padding: 1.5rem 2rem;
+  padding: 1rem;
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
   text-align: center;
+  /* Explicitly NOT fixed or sticky - scrolls with content */
+  position: relative;
 }
 
 .dashboard-brand {
   margin: 0 0 0.25rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
 }
 
 .dashboard-tagline {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--font-size-min-body, 0.875rem);
   color: #6b7280;
 }
 
-/* Main content */
+/* Main content - Mobile first (phone) */
 .dashboard-main {
   flex: 1;
-  padding: 2rem;
+  padding: 0.75rem;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -46,7 +54,7 @@
 .platform-sections {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Loading state */
@@ -55,20 +63,21 @@
 }
 
 .dashboard-loading-text {
-  margin: 0 0 1.5rem;
-  font-size: 1rem;
+  margin: 0 0 1rem;
+  font-size: var(--font-size-min-body, 0.875rem);
   color: #6b7280;
 }
 
+/* Skeleton grid - Mobile first: 2 columns */
 .skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--grid-gap-mobile, 0.75rem);
 }
 
-/* Footer */
+/* Footer - Mobile first (phone) */
 .dashboard-footer {
-  padding: 1rem 2rem;
+  padding: 0.75rem 1rem;
   background-color: white;
   border-top: 1px solid #e5e7eb;
   text-align: center;
@@ -76,39 +85,82 @@
 
 .footer-timestamp {
   margin: 0 0 0.25rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-min-body, 0.875rem);
   color: #4b5563;
 }
 
 .footer-attribution {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--font-size-min-small, 0.75rem);
   color: #9ca3af;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Tablet and up (640px+) */
+@media (min-width: 640px) {
   .dashboard-header {
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1.5rem;
   }
 
   .dashboard-brand {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .dashboard-tagline {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .dashboard-main {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
   .platform-sections {
-    gap: 1rem;
+    gap: 1.25rem;
+  }
+
+  .dashboard-loading-text {
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
   }
 
   .skeleton-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--grid-gap-tablet, 1rem);
+  }
+
+  .dashboard-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .dashboard-header {
+    padding: 1.5rem 2rem;
+  }
+
+  .dashboard-brand {
+    font-size: 2rem;
+  }
+
+  .dashboard-main {
+    padding: 2rem;
+  }
+
+  .platform-sections {
+    gap: 1.5rem;
+  }
+
+  .dashboard-loading-text {
+    margin-bottom: 1.5rem;
+  }
+
+  .skeleton-grid {
+    /* Auto-fill with minmax for fluid 3+ columns on desktop */
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width, 280px), 1fr));
+    gap: var(--grid-gap-desktop, 1rem);
+  }
+
+  .dashboard-footer {
+    padding: 1rem 2rem;
   }
 }

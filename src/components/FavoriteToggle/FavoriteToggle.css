@@ -3,19 +3,28 @@
  *
  * Visual styling for the favorite toggle star icon with color states
  * and smooth transitions.
+ *
+ * Touch Target: Minimum 44x44px tap target for mobile accessibility (WCAG 2.1 AA)
  */
 
-/* Base button styles */
+/* Base button styles - 44x44px minimum touch target */
 .favorite-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
+  /* Ensure minimum 44x44px touch target */
+  min-width: var(--touch-target-min, 44px);
+  min-height: var(--touch-target-min, 44px);
+  /* Padding to increase touch area while keeping visual icon size */
+  padding: 0.625rem;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
   transition: color 0.2s ease, filter 0.2s ease, transform 0.15s ease;
+  /* Ensure touch target doesn't get cut off */
+  margin: calc(-0.375rem);
+  position: relative;
 }
 
 .favorite-toggle:hover {
@@ -36,10 +45,11 @@
   outline-offset: 2px;
 }
 
-/* Icon size */
+/* Icon size - visual size remains smaller than touch target */
 .favorite-toggle-icon {
   width: 1.25rem;
   height: 1.25rem;
+  flex-shrink: 0;
 }
 
 /* Unfavorited state - gray outline */
@@ -104,4 +114,25 @@
 /* Disabled state */
 .favorite-toggle:disabled {
   pointer-events: none;
+}
+
+/* Tablet and up (640px+) - slightly smaller touch targets acceptable */
+@media (min-width: 640px) {
+  .favorite-toggle {
+    min-width: var(--touch-target-min, 44px);
+    min-height: var(--touch-target-min, 44px);
+    padding: 0.625rem;
+    margin: calc(-0.375rem);
+  }
+}
+
+/* Desktop (1025px+) - can be slightly smaller since mouse precision is better */
+@media (min-width: 1025px) {
+  .favorite-toggle {
+    /* Still maintain good touch target for touchscreen desktops */
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    margin: calc(-0.25rem);
+  }
 }
