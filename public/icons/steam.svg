@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="steam-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1b2838"/>
+      <stop offset="100%" style="stop-color:#2a475e"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" fill="url(#steam-bg)" rx="8"/>
+  <circle cx="50" cy="42" r="18" fill="none" stroke="#66c0f4" stroke-width="4"/>
+  <circle cx="50" cy="42" r="8" fill="#66c0f4"/>
+  <path d="M50 60 L50 75" stroke="#66c0f4" stroke-width="4" stroke-linecap="round"/>
+  <path d="M35 70 L65 70" stroke="#66c0f4" stroke-width="4" stroke-linecap="round"/>
+  <text x="50" y="92" fill="#66c0f4" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">STEAM</text>
+</svg>

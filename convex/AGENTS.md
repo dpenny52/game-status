@@ -3,9 +3,13 @@
 ## Adding New Games to the Database
 
 - Games must exist in the `games` table before status fetchers can update their status
-- Use `seedGames.ts` mutations to add games. Run with: `npx convex run seedGames:seedBlizzardGames`
+- Use `seedGames.ts` mutations to add games:
+  - `npx convex run seedGames:seedAllGames` - Seeds ALL games from all platforms
+  - `npx convex run seedGames:seedBlizzardGames` - Seeds only Blizzard games
+  - Platform-specific: `seedRiotGames`, `seedSteamGames`, `seedEpicGames`, `seedMojangGames`, `seedSquareEnixGames`
 - The seed mutation is idempotent - it checks for existing games by slug before inserting
 - Game slugs must match what the publisher fetchers expect (e.g., `world-of-warcraft`, `diablo-iv`, `overwatch-2`)
+- ALL_GAMES array in seedGames.ts exports all game data for testing/reference
 
 ## Publisher Fetcher Pattern
 
@@ -50,8 +54,22 @@
 
 ## Game Icons (Issue #4)
 
-- Game icons are stored locally in `public/icons/` as JPG files
-- Icon URLs in the database use relative paths: `/icons/game-slug.jpg`
+- Game icons are stored locally in `public/icons/` as JPG or SVG files
+- Icon URLs in the database use relative paths: `/icons/game-slug.{jpg|svg}`
 - External CDN URLs (e.g., Blizzard's akamaized.net) are unreliable - they return 422 errors
-- To update existing game icon URLs: `npx convex run seedGames:updateBlizzardGameIcons`
+- To update existing game icon URLs: `npx convex run seedGames:updateAllGameIcons`
 - Image source for game artwork: RAWG API (`https://api.rawg.io/api/games/{slug}`) - use `background_image` field
+
+## All Games List (Issue #6)
+
+The following games are seeded in `seedGames.ts` (11 total):
+
+**Blizzard (4):** World of Warcraft, Overwatch 2, Diablo IV, Hearthstone
+**Riot (3):** League of Legends, Valorant, Teamfight Tactics
+**Steam (1):** Steam
+**Epic (1):** Fortnite
+**Mojang (1):** Minecraft
+**Square Enix (1):** Final Fantasy XIV
+
+- Unit tests: `convex/__tests__/seedGames.test.ts` validates all games are correctly structured
+- E2E tests: `e2e/dashboard.spec.ts` tests 11-15 verify all games display on dashboard

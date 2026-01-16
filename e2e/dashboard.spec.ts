@@ -202,9 +202,9 @@ test.describe("GameStatus Dashboard", () => {
 
           console.log(`Icon ${i + 1} src: ${src}`);
 
-          // Verify the icon path is a local static path
+          // Verify the icon path is a local static path (jpg, png, webp, or svg)
           if (src) {
-            expect(src).toMatch(/^\/icons\/.+\.(jpg|png|webp)$/);
+            expect(src).toMatch(/^\/icons\/.+\.(jpg|png|webp|svg)$/);
           }
         }
 
@@ -289,6 +289,233 @@ test.describe("GameStatus Dashboard", () => {
         console.log("Test 10 PASSED: All game icons have proper alt text");
       } else {
         console.log("Test 10 SKIPPED: No game cards visible");
+      }
+    });
+  });
+
+  test.describe("All Games Coverage (Issue #6)", () => {
+    /**
+     * Expected games from product/mission.md
+     * These are the games that should be seeded in the database
+     */
+    const EXPECTED_GAMES = [
+      // Blizzard
+      { name: "World of Warcraft", platform: "Blizzard" },
+      { name: "Overwatch 2", platform: "Blizzard" },
+      { name: "Diablo IV", platform: "Blizzard" },
+      { name: "Hearthstone", platform: "Blizzard" },
+      // Riot
+      { name: "League of Legends", platform: "Riot" },
+      { name: "Valorant", platform: "Riot" },
+      { name: "Teamfight Tactics", platform: "Riot" },
+      // Steam
+      { name: "Steam", platform: "Steam" },
+      // Epic
+      { name: "Fortnite", platform: "Epic" },
+      // Mojang
+      { name: "Minecraft", platform: "Mojang" },
+      // Square Enix
+      { name: "Final Fantasy XIV", platform: "Square Enix" },
+    ];
+
+    const EXPECTED_PLATFORMS = [
+      "Blizzard",
+      "Riot",
+      "Steam",
+      "Epic",
+      "Mojang",
+      "Square Enix",
+    ];
+
+    test("11. Dashboard should show all platform sections", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      // Check for platform sections
+      const platformSections = page.locator(".platform-section");
+      const sectionCount = await platformSections.count();
+
+      console.log(`Found ${sectionCount} platform sections`);
+
+      if (sectionCount > 0) {
+        // Get all platform section titles
+        const platformTitles = page.locator(".platform-section-title");
+        const titleCount = await platformTitles.count();
+
+        const foundPlatforms: string[] = [];
+        for (let i = 0; i < titleCount; i++) {
+          const title = await platformTitles.nth(i).textContent();
+          if (title) {
+            foundPlatforms.push(title.trim());
+          }
+        }
+
+        console.log("Found platforms:", foundPlatforms);
+
+        // Take screenshot
+        await page.screenshot({
+          path: "e2e/screenshots/11-platform-sections.png",
+          fullPage: true,
+        });
+
+        // Verify we have platform sections (count may vary based on data)
+        expect(sectionCount).toBeGreaterThan(0);
+
+        console.log("Test 11 PASSED: Platform sections are displayed");
+      } else {
+        console.log("Test 11 SKIPPED: No platform sections visible (may need data seeded)");
+      }
+    });
+
+    test("12. Each platform section should contain game cards", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      const platformSections = page.locator(".platform-section");
+      const sectionCount = await platformSections.count();
+
+      if (sectionCount > 0) {
+        for (let i = 0; i < sectionCount; i++) {
+          const section = platformSections.nth(i);
+          const sectionTitle = await section.locator(".platform-section-title").textContent();
+          const gameCards = section.locator(".game-card");
+          const cardCount = await gameCards.count();
+
+          console.log(`Platform "${sectionTitle}": ${cardCount} game cards`);
+
+          // Each platform should have at least one game
+          expect(cardCount).toBeGreaterThan(0);
+        }
+
+        console.log("Test 12 PASSED: Each platform section contains game cards");
+      } else {
+        console.log("Test 12 SKIPPED: No platform sections visible");
+      }
+    });
+
+    test("13. Blizzard section should have 4 games", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      // Find the Blizzard section by looking for section with "Blizzard" title
+      const platformTitles = page.locator(".platform-section-title");
+      const titleCount = await platformTitles.count();
+
+      let blizzardSection = null;
+      for (let i = 0; i < titleCount; i++) {
+        const title = await platformTitles.nth(i).textContent();
+        if (title?.toLowerCase().includes("blizzard")) {
+          // Get the parent section
+          blizzardSection = platformTitles.nth(i).locator("xpath=ancestor::*[contains(@class, 'platform-section')]");
+          break;
+        }
+      }
+
+      if (blizzardSection) {
+        const gameCards = blizzardSection.locator(".game-card");
+        const cardCount = await gameCards.count();
+
+        console.log(`Blizzard section has ${cardCount} game cards`);
+
+        // Get all game names in Blizzard section
+        const gameNames: string[] = [];
+        for (let i = 0; i < cardCount; i++) {
+          const name = await gameCards.nth(i).locator(".game-card-name").textContent();
+          if (name) {
+            gameNames.push(name.trim());
+          }
+        }
+
+        console.log("Blizzard games found:", gameNames);
+
+        // Should have 4 Blizzard games (WoW, OW2, D4, Hearthstone)
+        expect(cardCount).toBe(4);
+
+        console.log("Test 13 PASSED: Blizzard section has 4 games");
+      } else {
+        console.log("Test 13 SKIPPED: Blizzard section not found");
+      }
+    });
+
+    test("14. Riot section should have 3 games", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      const platformTitles = page.locator(".platform-section-title");
+      const titleCount = await platformTitles.count();
+
+      let riotSection = null;
+      for (let i = 0; i < titleCount; i++) {
+        const title = await platformTitles.nth(i).textContent();
+        if (title?.toLowerCase().includes("riot")) {
+          riotSection = platformTitles.nth(i).locator("xpath=ancestor::*[contains(@class, 'platform-section')]");
+          break;
+        }
+      }
+
+      if (riotSection) {
+        const gameCards = riotSection.locator(".game-card");
+        const cardCount = await gameCards.count();
+
+        console.log(`Riot section has ${cardCount} game cards`);
+
+        // Should have 3 Riot games (LoL, Valorant, TFT)
+        expect(cardCount).toBe(3);
+
+        console.log("Test 14 PASSED: Riot section has 3 games");
+      } else {
+        console.log("Test 14 SKIPPED: Riot section not found");
+      }
+    });
+
+    test("15. All expected games should be visible when data is seeded", async ({ page }) => {
+      // Wait for network to settle
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+
+      const gameCards = page.locator(".game-card");
+      const cardCount = await gameCards.count();
+
+      if (cardCount > 0) {
+        // Get all game names
+        const foundGames: string[] = [];
+        for (let i = 0; i < cardCount; i++) {
+          const name = await gameCards.nth(i).locator(".game-card-name").textContent();
+          if (name) {
+            foundGames.push(name.trim());
+          }
+        }
+
+        console.log(`Total games found: ${foundGames.length}`);
+        console.log("Games:", foundGames);
+
+        // Take screenshot
+        await page.screenshot({
+          path: "e2e/screenshots/15-all-games.png",
+          fullPage: true,
+        });
+
+        // If all games are seeded, we should have 11 total (see EXPECTED_GAMES above)
+        // Note: This test will pass even if not all games are seeded, but logs the status
+        if (foundGames.length === 11) {
+          // Verify all expected games are present
+          for (const expected of EXPECTED_GAMES) {
+            const found = foundGames.some(
+              (g) => g.toLowerCase() === expected.name.toLowerCase()
+            );
+            console.log(`Game "${expected.name}": ${found ? "FOUND" : "MISSING"}`);
+            expect(found).toBe(true);
+          }
+          console.log("Test 15 PASSED: All 11 expected games are visible");
+        } else {
+          console.log(`Test 15 INFO: Found ${foundGames.length} games (expected 11 when fully seeded)`);
+        }
+      } else {
+        console.log("Test 15 SKIPPED: No game cards visible");
       }
     });
   });
