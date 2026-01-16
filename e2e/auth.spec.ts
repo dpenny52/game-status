@@ -6,565 +6,413 @@
  * - Login with invalid credentials shows error
  * - Signup flow
  * - Logout flow
+ * - Magic link flow
+ * - Forgot password flow
  *
  * @module auth.spec
  */
 import { test, expect } from "@playwright/test";
 
+// Test user credentials for signup tests - use unique email to avoid conflicts
+const SIGNUP_USER = {
+  email: `e2e-signup-${Date.now()}@example.com`,
+  password: "TestPassword123!",
+  displayName: "E2E Test User",
+};
+
 test.describe("Authentication Flows", () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to the app
+    // Clear localStorage to ensure fresh state
     await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
-
-    // Wait for the dashboard to render
-    await page.waitForSelector(".dashboard", { timeout: 10000 });
+    await page.evaluate(() => localStorage.clear());
   });
 
-  test("1. Login modal opens from header", async ({ page }) => {
-    // Look for the login button in the header
-    const loginButton = page.locator('[data-testid="login-button"]');
+  test.describe("Login Flow", () => {
+    test("opens login modal from settings page", async ({ page }) => {
+      // Navigate to settings page (has Sign In button when unauthenticated)
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    // Check if login button exists (it may be called differently)
-    const loginButtonExists = await loginButton.isVisible().catch(() => false);
+      // Wait for unauthenticated state
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
 
-    if (loginButtonExists) {
+      // Click the login button
+      const loginButton = page.locator('[data-testid="settings-login-button"]');
+      await expect(loginButton).toBeVisible();
       await loginButton.click();
 
-      // Wait for login modal to appear
-      const loginModal = page.locator('[data-testid="login-modal"]');
-      await expect(loginModal).toBeVisible({ timeout: 5000 });
+      // Verify login modal appears with email and password fields
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="login-password-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="login-submit-button"]')).toBeVisible();
 
       // Take screenshot
       await page.screenshot({
-        path: "e2e/screenshots/auth-01-login-modal.png",
+        path: "e2e/screenshots/auth-login-modal.png",
         fullPage: false,
       });
-
-      console.log("Test 1 PASSED: Login modal opens successfully");
-    } else {
-      // Try alternative selectors
-      const signInButton = page.locator("text=Sign In").first();
-      const signInExists = await signInButton.isVisible().catch(() => false);
-
-      if (signInExists) {
-        await signInButton.click();
-        await page.waitForTimeout(500);
-
-        // Take screenshot of whatever modal opened
-        await page.screenshot({
-          path: "e2e/screenshots/auth-01-login-modal.png",
-          fullPage: false,
-        });
-
-        console.log("Test 1 PASSED: Sign in button clicked");
-      } else {
-        console.log("Test 1 SKIPPED: No login/sign in button found");
-      }
-    }
-  });
-
-  test("2. Login form has email and password fields", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
-
-      // Check for email input
-      const emailInput = page.locator('input[type="email"], input[name="email"]');
-      const emailExists = await emailInput.first().isVisible().catch(() => false);
-
-      // Check for password input
-      const passwordInput = page.locator('input[type="password"]');
-      const passwordExists = await passwordInput.first().isVisible().catch(() => false);
-
-      if (emailExists && passwordExists) {
-        await page.screenshot({
-          path: "e2e/screenshots/auth-02-login-form.png",
-          fullPage: false,
-        });
-        console.log("Test 2 PASSED: Login form has email and password fields");
-      } else {
-        console.log("Test 2 INFO: Form fields status - email:", emailExists, "password:", passwordExists);
-      }
-    } else {
-      console.log("Test 2 SKIPPED: No sign in button found");
-    }
-
-    // Test passes as long as the page loads correctly
-    await expect(page.locator(".dashboard")).toBeVisible();
-  });
-
-  test("3. Signup modal can be accessed", async ({ page }) => {
-    // Look for signup option
-    const signUpButton = page.locator("text=Sign Up").first();
-    const signUpExists = await signUpButton.isVisible().catch(() => false);
-
-    if (signUpExists) {
-      await signUpButton.click();
-      await page.waitForTimeout(500);
-
-      // Take screenshot
-      await page.screenshot({
-        path: "e2e/screenshots/auth-03-signup-modal.png",
-        fullPage: false,
-      });
-
-      console.log("Test 3 PASSED: Signup modal accessible");
-    } else {
-      // Try clicking Sign In first, then looking for Sign Up link within modal
-      const signInButton = page.locator("text=Sign In").first();
-      const signInExists = await signInButton.isVisible().catch(() => false);
-
-      if (signInExists) {
-        await signInButton.click();
-        await page.waitForTimeout(500);
-
-        // Look for signup link in the modal
-        const signUpLink = page.locator("text=Create account, text=Sign up, text=Register").first();
-        const linkExists = await signUpLink.isVisible().catch(() => false);
-
-        if (linkExists) {
-          await signUpLink.click();
-          await page.waitForTimeout(500);
-          await page.screenshot({
-            path: "e2e/screenshots/auth-03-signup-modal.png",
-            fullPage: false,
-          });
-          console.log("Test 3 PASSED: Signup modal accessible via link");
-        } else {
-          console.log("Test 3 INFO: Login modal opened, checking for signup switch");
-        }
-      }
-    }
-
-    // Test passes as long as the page loads correctly
-    await expect(page.locator(".dashboard")).toBeVisible();
-  });
-
-  test("4. Invalid login shows error message", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
-
-      // Find and fill email input
-      const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-      const emailExists = await emailInput.isVisible().catch(() => false);
-
-      if (emailExists) {
-        await emailInput.fill("invalid@example.com");
-
-        // Find and fill password input
-        const passwordInput = page.locator('input[type="password"]').first();
-        await passwordInput.fill("wrongpassword");
-
-        // Submit the form
-        const submitButton = page.locator('button[type="submit"], button:has-text("Log In"), button:has-text("Sign In")').first();
-        const submitExists = await submitButton.isVisible().catch(() => false);
-
-        if (submitExists) {
-          await submitButton.click();
-          await page.waitForTimeout(2000);
-
-          // Look for error message
-          const errorMessage = page.locator("text=Invalid, text=Error, text=failed").first();
-          const hasError = await errorMessage.isVisible().catch(() => false);
-
-          await page.screenshot({
-            path: "e2e/screenshots/auth-04-login-error.png",
-            fullPage: false,
-          });
-
-          if (hasError) {
-            console.log("Test 4 PASSED: Invalid login shows error message");
-          } else {
-            console.log("Test 4 INFO: Login attempted, checking for error state");
-          }
-        }
-      }
-    }
-
-    // Test passes as long as the page remains functional
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("5. Dashboard accessible without authentication", async ({ page }) => {
-    // Verify the dashboard loads for unauthenticated users
-    const dashboard = page.locator(".dashboard");
-    await expect(dashboard).toBeVisible();
-
-    // Check for header
-    const header = page.locator("header.dashboard-header");
-    await expect(header).toBeVisible();
-
-    // Take screenshot
-    await page.screenshot({
-      path: "e2e/screenshots/auth-05-unauthenticated-dashboard.png",
-      fullPage: true,
     });
 
-    console.log("Test 5 PASSED: Dashboard accessible without authentication");
-  });
+    test("shows error for invalid credentials", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-  test("6. Auth state indicator visible", async ({ page }) => {
-    // Look for any indication of auth state (login button, user avatar, etc.)
-    const authIndicator = page.locator('[data-testid="login-button"], [data-testid="user-menu"], text=Sign In, text=Sign Up').first();
-    const hasAuthIndicator = await authIndicator.isVisible().catch(() => false);
+      // Wait for unauthenticated state and click login
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
 
-    if (hasAuthIndicator) {
-      await authIndicator.screenshot({
-        path: "e2e/screenshots/auth-06-auth-indicator.png",
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Fill in invalid credentials
+      await page.locator('[data-testid="login-email-input"]').fill("invalid@example.com");
+      await page.locator('[data-testid="login-password-input"]').fill("wrongpassword123");
+
+      // Submit
+      await page.locator('[data-testid="login-submit-button"]').click();
+
+      // Wait for error message
+      await expect(page.locator('[data-testid="login-error"]')).toBeVisible({ timeout: 5000 });
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-login-error.png",
+        fullPage: false,
       });
-      console.log("Test 6 PASSED: Auth state indicator is visible");
-    } else {
-      console.log("Test 6 INFO: Auth indicator not found in expected locations");
-    }
+    });
 
-    // Verify page is still functional
-    await expect(page.locator(".dashboard")).toBeVisible();
+    test("login form has forgot password link", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+
+      // Wait for unauthenticated state and click login
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Verify forgot password link is visible
+      const forgotPasswordLink = page.locator('[data-testid="forgot-password-link"]');
+      await expect(forgotPasswordLink).toBeVisible();
+    });
   });
 
-  test("7. Magic link option visible in login modal", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
+  test.describe("Signup Flow", () => {
+    test("opens signup modal from login modal", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      // Wait for unauthenticated state and click login
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
 
-      // Look for magic link option
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Click switch to signup
+      await page.locator('[data-testid="switch-to-signup"]').click();
+
+      // Verify signup modal appears
+      await expect(page.locator('[data-testid="signup-email-input"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="signup-displayname-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="signup-password-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="signup-confirm-password-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-signup-modal.png",
+        fullPage: false,
+      });
+    });
+
+    test("signup form validates password requirements", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+
+      // Open signup modal
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="switch-to-signup"]').click();
+      await expect(page.locator('[data-testid="signup-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Fill in form with weak password
+      await page.locator('[data-testid="signup-email-input"]').fill(SIGNUP_USER.email);
+      await page.locator('[data-testid="signup-displayname-input"]').fill(SIGNUP_USER.displayName);
+      await page.locator('[data-testid="signup-password-input"]').fill("weak");
+      await page.locator('[data-testid="signup-confirm-password-input"]').fill("weak");
+
+      // Submit and expect validation error
+      await page.locator('[data-testid="signup-submit-button"]').click();
+
+      // Look for error message about password requirements
+      const errorElements = page.locator('.form-error, [role="alert"]');
+      await expect(errorElements.first()).toBeVisible({ timeout: 3000 });
+    });
+  });
+
+  test.describe("Magic Link Flow", () => {
+    test("shows magic link option in login modal", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+
+      // Open login modal
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Verify magic link option is visible
       const magicLinkOption = page.locator('[data-testid="magic-link-option"]');
-      const magicLinkExists = await magicLinkOption.isVisible().catch(() => false);
+      await expect(magicLinkOption).toBeVisible();
 
-      if (magicLinkExists) {
-        await page.screenshot({
-          path: "e2e/screenshots/auth-07-magic-link-option.png",
-          fullPage: false,
-        });
-        console.log("Test 7 PASSED: Magic link option visible in login modal");
-      } else {
-        // Try alternative text
-        const altMagicLink = page.locator("text=email link, text=magic link, text=passwordless").first();
-        const altExists = await altMagicLink.isVisible().catch(() => false);
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-magic-link-option.png",
+        fullPage: false,
+      });
+    });
 
-        if (altExists) {
-          await page.screenshot({
-            path: "e2e/screenshots/auth-07-magic-link-option.png",
-            fullPage: false,
-          });
-          console.log("Test 7 PASSED: Magic link option found via alternative selector");
-        } else {
-          console.log("Test 7 INFO: Magic link option not found, may need to add UI element");
-        }
-      }
-    } else {
-      console.log("Test 7 SKIPPED: No sign in button found");
-    }
+    test("clicking magic link option shows email form", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    // Test passes as long as the page loads correctly
-    await expect(page.locator(".dashboard")).toBeVisible();
-  });
-
-  test("8. Click magic link option shows email form", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      // Open login modal
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
 
       // Click magic link option
-      const magicLinkOption = page.locator('[data-testid="magic-link-option"]');
-      const magicLinkExists = await magicLinkOption.isVisible().catch(() => false);
+      await page.locator('[data-testid="magic-link-option"]').click();
 
-      if (magicLinkExists) {
-        await magicLinkOption.click();
-        await page.waitForTimeout(300);
+      // Verify magic link email form appears
+      await expect(page.locator('[data-testid="magic-link-email-input"]')).toBeVisible({ timeout: 3000 });
+      await expect(page.locator('[data-testid="magic-link-submit"]')).toBeVisible();
 
-        // Check for magic link email input
-        const magicLinkInput = page.locator('[data-testid="magic-link-email-input"]');
-        const inputExists = await magicLinkInput.isVisible().catch(() => false);
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-magic-link-form.png",
+        fullPage: false,
+      });
+    });
 
-        if (inputExists) {
-          await page.screenshot({
-            path: "e2e/screenshots/auth-08-magic-link-form.png",
-            fullPage: false,
-          });
-          console.log("Test 8 PASSED: Magic link email form shown");
-        } else {
-          console.log("Test 8 INFO: Magic link form not found after clicking option");
-        }
-      } else {
-        console.log("Test 8 SKIPPED: Magic link option not visible");
-      }
-    } else {
-      console.log("Test 8 SKIPPED: No sign in button found");
-    }
+    test("submitting magic link request shows confirmation", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    // Test passes as long as the page loads correctly
-    await expect(page.locator("body")).toBeVisible();
+      // Open login modal and switch to magic link
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="magic-link-option"]').click();
+      await expect(page.locator('[data-testid="magic-link-email-input"]')).toBeVisible({ timeout: 3000 });
+
+      // Fill in email and submit
+      await page.locator('[data-testid="magic-link-email-input"]').fill("test@example.com");
+      await page.locator('[data-testid="magic-link-submit"]').click();
+
+      // Wait for confirmation message
+      await expect(page.locator('[data-testid="magic-link-sent"]')).toBeVisible({ timeout: 10000 });
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-magic-link-confirmation.png",
+        fullPage: false,
+      });
+    });
   });
 
-  test("9. Submit magic link request shows confirmation", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
+  test.describe("Forgot Password Flow", () => {
+    test("clicking forgot password opens forgot password form", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
-
-      // Click magic link option
-      const magicLinkOption = page.locator('[data-testid="magic-link-option"]');
-      const magicLinkExists = await magicLinkOption.isVisible().catch(() => false);
-
-      if (magicLinkExists) {
-        await magicLinkOption.click();
-        await page.waitForTimeout(300);
-
-        // Fill email
-        const magicLinkInput = page.locator('[data-testid="magic-link-email-input"]');
-        const inputExists = await magicLinkInput.isVisible().catch(() => false);
-
-        if (inputExists) {
-          await magicLinkInput.fill("test@example.com");
-
-          // Submit
-          const submitButton = page.locator('[data-testid="magic-link-submit"]');
-          const submitExists = await submitButton.isVisible().catch(() => false);
-
-          if (submitExists) {
-            await submitButton.click();
-            await page.waitForTimeout(2000);
-
-            // Check for confirmation message
-            const confirmation = page.locator('[data-testid="magic-link-sent"]');
-            const confirmationExists = await confirmation.isVisible().catch(() => false);
-
-            if (confirmationExists) {
-              await page.screenshot({
-                path: "e2e/screenshots/auth-09-magic-link-confirmation.png",
-                fullPage: false,
-              });
-              console.log("Test 9 PASSED: Magic link request shows confirmation");
-            } else {
-              // Check for error (may fail if Convex not running)
-              const errorMsg = page.locator("text=Check your email, text=sent").first();
-              const hasMsg = await errorMsg.isVisible().catch(() => false);
-
-              if (hasMsg) {
-                console.log("Test 9 PASSED: Confirmation message found");
-              } else {
-                console.log("Test 9 INFO: Request submitted, confirmation state unclear");
-              }
-            }
-          }
-        }
-      } else {
-        console.log("Test 9 SKIPPED: Magic link option not visible");
-      }
-    } else {
-      console.log("Test 9 SKIPPED: No sign in button found");
-    }
-
-    // Test passes as long as the page remains functional
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("10. Forgot password link opens forgot password form", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      // Open login modal
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
 
       // Click forgot password link
-      const forgotPasswordLink = page.locator('[data-testid="forgot-password-link"]');
-      const forgotExists = await forgotPasswordLink.isVisible().catch(() => false);
+      await page.locator('[data-testid="forgot-password-link"]').click();
 
-      if (forgotExists) {
-        await forgotPasswordLink.click();
-        await page.waitForTimeout(300);
+      // Verify forgot password form appears
+      await expect(page.locator('[data-testid="forgot-password-email-input"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="forgot-password-submit"]')).toBeVisible();
 
-        // Check for forgot password form
-        const forgotPasswordInput = page.locator('[data-testid="forgot-password-email-input"]');
-        const inputExists = await forgotPasswordInput.isVisible().catch(() => false);
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-forgot-password-form.png",
+        fullPage: false,
+      });
+    });
 
-        if (inputExists) {
-          await page.screenshot({
-            path: "e2e/screenshots/auth-10-forgot-password-form.png",
-            fullPage: false,
-          });
-          console.log("Test 10 PASSED: Forgot password form shown");
-        } else {
-          console.log("Test 10 INFO: Forgot password form not found after clicking link");
-        }
-      } else {
-        console.log("Test 10 SKIPPED: Forgot password link not visible");
-      }
-    } else {
-      console.log("Test 10 SKIPPED: No sign in button found");
-    }
+    test("forgot password form pre-fills email from login form", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-    // Test passes as long as the page loads correctly
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("11. Forgot password form pre-fills email from login form", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      // Open login modal
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
 
       // Enter email in login form
-      const loginEmailInput = page.locator('[data-testid="login-email-input"]');
-      const emailExists = await loginEmailInput.isVisible().catch(() => false);
-
-      if (emailExists) {
-        await loginEmailInput.fill("prefilled@example.com");
-
-        // Click forgot password link
-        const forgotPasswordLink = page.locator('[data-testid="forgot-password-link"]');
-        await forgotPasswordLink.click();
-        await page.waitForTimeout(300);
-
-        // Check if email is pre-filled
-        const forgotPasswordInput = page.locator('[data-testid="forgot-password-email-input"]');
-        const inputExists = await forgotPasswordInput.isVisible().catch(() => false);
-
-        if (inputExists) {
-          const value = await forgotPasswordInput.inputValue();
-          if (value === "prefilled@example.com") {
-            console.log("Test 11 PASSED: Email pre-filled from login form");
-          } else {
-            console.log("Test 11 INFO: Email not pre-filled, got:", value);
-          }
-          await page.screenshot({
-            path: "e2e/screenshots/auth-11-forgot-password-prefilled.png",
-            fullPage: false,
-          });
-        }
-      }
-    }
-
-    // Test passes as long as the page loads correctly
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("12. Forgot password form shows success after submission", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
-
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      const testEmail = "prefilled@example.com";
+      await page.locator('[data-testid="login-email-input"]').fill(testEmail);
 
       // Click forgot password link
-      const forgotPasswordLink = page.locator('[data-testid="forgot-password-link"]');
-      const forgotExists = await forgotPasswordLink.isVisible().catch(() => false);
+      await page.locator('[data-testid="forgot-password-link"]').click();
 
-      if (forgotExists) {
-        await forgotPasswordLink.click();
-        await page.waitForTimeout(300);
+      // Verify email is pre-filled
+      const forgotPasswordInput = page.locator('[data-testid="forgot-password-email-input"]');
+      await expect(forgotPasswordInput).toBeVisible({ timeout: 5000 });
+      await expect(forgotPasswordInput).toHaveValue(testEmail);
 
-        // Fill email
-        const forgotPasswordInput = page.locator('[data-testid="forgot-password-email-input"]');
-        const inputExists = await forgotPasswordInput.isVisible().catch(() => false);
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-forgot-password-prefilled.png",
+        fullPage: false,
+      });
+    });
 
-        if (inputExists) {
-          await forgotPasswordInput.fill("test@example.com");
+    test("submitting forgot password shows success message", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-          // Submit
-          const submitButton = page.locator('[data-testid="forgot-password-submit"]');
-          await submitButton.click();
-          await page.waitForTimeout(2000);
+      // Open login modal and go to forgot password
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="forgot-password-link"]').click();
+      await expect(page.locator('[data-testid="forgot-password-email-input"]')).toBeVisible({ timeout: 5000 });
 
-          // Check for success message
-          const successMessage = page.locator('[data-testid="forgot-password-success"]');
-          const successExists = await successMessage.isVisible().catch(() => false);
+      // Fill in email and submit
+      await page.locator('[data-testid="forgot-password-email-input"]').fill("test@example.com");
+      await page.locator('[data-testid="forgot-password-submit"]').click();
 
-          if (successExists) {
-            await page.screenshot({
-              path: "e2e/screenshots/auth-12-forgot-password-success.png",
-              fullPage: false,
-            });
-            console.log("Test 12 PASSED: Forgot password success message shown");
-          } else {
-            // Check for any success-like text
-            const successText = page.locator("text=reset link, text=If an account exists").first();
-            const hasSuccessText = await successText.isVisible().catch(() => false);
+      // Wait for success message
+      await expect(page.locator('[data-testid="forgot-password-success"]')).toBeVisible({ timeout: 10000 });
 
-            if (hasSuccessText) {
-              console.log("Test 12 PASSED: Success message found via text");
-            } else {
-              console.log("Test 12 INFO: Success state unclear, request may have completed");
-            }
-          }
-        }
-      }
-    }
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-forgot-password-success.png",
+        fullPage: false,
+      });
+    });
 
-    // Test passes as long as the page remains functional
-    await expect(page.locator("body")).toBeVisible();
+    test("can navigate back to login from forgot password", async ({ page }) => {
+      // Navigate to settings page
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
+
+      // Open login modal and go to forgot password
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="settings-login-button"]').click();
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await page.locator('[data-testid="forgot-password-link"]').click();
+      await expect(page.locator('[data-testid="forgot-password-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Click back to login
+      await page.locator('[data-testid="forgot-password-back-link"]').click();
+
+      // Verify back at login form
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-back-to-login.png",
+        fullPage: false,
+      });
+    });
   });
 
-  test("13. Can navigate back to login from forgot password", async ({ page }) => {
-    // Click login button
-    const signInButton = page.locator("text=Sign In").first();
-    const signInExists = await signInButton.isVisible().catch(() => false);
+  test.describe("Logout Flow", () => {
+    test("logout button is visible for authenticated users", async ({ page }) => {
+      // Set up authenticated state via localStorage
+      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+      await page.evaluate(() => {
+        const mockUser = {
+          _id: "test-user-id",
+          email: "test@example.com",
+          displayName: "Test User",
+          isEmailVerified: true,
+        };
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user: mockUser }));
+      });
 
-    if (signInExists) {
-      await signInButton.click();
-      await page.waitForTimeout(500);
+      // Navigate to settings
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-      // Click forgot password link
-      const forgotPasswordLink = page.locator('[data-testid="forgot-password-link"]');
-      const forgotExists = await forgotPasswordLink.isVisible().catch(() => false);
+      // Wait for settings page (authenticated state)
+      await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
 
-      if (forgotExists) {
-        await forgotPasswordLink.click();
-        await page.waitForTimeout(300);
+      // Verify logout button is visible
+      const logoutButton = page.locator('[data-testid="settings-logout-button"]');
+      await expect(logoutButton).toBeVisible();
 
-        // Click back to login
-        const backLink = page.locator('[data-testid="forgot-password-back-link"]');
-        const backExists = await backLink.isVisible().catch(() => false);
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-logout-button.png",
+        fullPage: true,
+      });
+    });
 
-        if (backExists) {
-          await backLink.click();
-          await page.waitForTimeout(300);
+    test("logout clears user state", async ({ page }) => {
+      // Set up authenticated state via localStorage
+      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+      await page.evaluate(() => {
+        const mockUser = {
+          _id: "test-user-id",
+          email: "test@example.com",
+          displayName: "Test User",
+          isEmailVerified: true,
+        };
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user: mockUser }));
+      });
 
-          // Should be back at login form
-          const loginEmailInput = page.locator('[data-testid="login-email-input"]');
-          const loginVisible = await loginEmailInput.isVisible().catch(() => false);
+      // Navigate to settings
+      await page.goto("http://localhost:5173/settings", { waitUntil: "networkidle" });
 
-          if (loginVisible) {
-            await page.screenshot({
-              path: "e2e/screenshots/auth-13-back-to-login.png",
-              fullPage: false,
-            });
-            console.log("Test 13 PASSED: Successfully navigated back to login");
-          } else {
-            console.log("Test 13 INFO: Login form not visible after back navigation");
-          }
-        }
-      }
-    }
+      // Wait for settings page (authenticated state)
+      await expect(page.locator('[data-testid="settings-page"]')).toBeVisible({ timeout: 10000 });
 
-    // Test passes as long as the page remains functional
-    await expect(page.locator("body")).toBeVisible();
+      // Click logout button
+      await page.locator('[data-testid="settings-logout-button"]').click();
+
+      // Wait for confirmation dialog and confirm
+      await expect(page.locator('[data-testid="settings-confirm-logout"]')).toBeVisible({ timeout: 3000 });
+      await page.locator('[data-testid="settings-confirm-logout"]').click();
+
+      // Wait for logout to complete - should show unauthenticated state
+      await expect(page.locator('[data-testid="settings-unauthenticated"]')).toBeVisible({ timeout: 10000 });
+
+      // Verify localStorage is cleared
+      const authState = await page.evaluate(() => localStorage.getItem("gamestatus_auth"));
+      expect(authState).toBeNull();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-logout-complete.png",
+        fullPage: true,
+      });
+    });
+  });
+
+  test.describe("Dashboard Access", () => {
+    test("dashboard is accessible without authentication", async ({ page }) => {
+      // Navigate to dashboard
+      await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+      await expect(page.locator(".dashboard-header")).toBeVisible();
+      await expect(page.locator(".dashboard-brand")).toHaveText("GameStatus");
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-dashboard-unauthenticated.png",
+        fullPage: true,
+      });
+    });
   });
 });

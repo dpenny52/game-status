@@ -14,9 +14,9 @@
 - Use `.first()` when multiple matching elements possible
 
 ### Error Handling
-- Use `.catch(() => false)` pattern for checking if elements exist
-- Log info messages when expected elements not found
-- Make tests resilient - pass if core functionality works
+- Use proper `await expect().toBeVisible({ timeout: X })` assertions for reliable tests
+- Avoid `.catch(() => false)` pattern - it makes tests pass even when things fail
+- Use explicit timeouts appropriate for the operation (5s for modals, 10s for page loads)
 
 ### Magic Link Tests (Test 7-9)
 - `magic-link-option` - Button to switch to magic link form in login modal
@@ -77,3 +77,24 @@ npx playwright test e2e/auth.spec.ts
 - Token validation happens via Convex query, so E2E tests without real tokens will show error
 - Tests are designed to be resilient - many tests document current behavior
 - Screenshot tests captured at `e2e/screenshots/reset-password-*.png`
+
+## Auth E2E Test Structure
+
+The auth.spec.ts file is organized into logical test groups:
+- **Login Flow** - Tests login modal opening, invalid credentials error, forgot password link
+- **Signup Flow** - Tests signup modal navigation, password validation
+- **Magic Link Flow** - Tests magic link option, form, and confirmation
+- **Forgot Password Flow** - Tests forgot password form, email pre-fill, success, and back navigation
+- **Logout Flow** - Tests logout button visibility and logout clears state
+- **Dashboard Access** - Tests unauthenticated dashboard access
+
+### Testing Authenticated State
+For tests that require authenticated state, inject user via localStorage instead of full login flow:
+```javascript
+await page.evaluate(() => {
+  localStorage.setItem("gamestatus_auth", JSON.stringify({
+    user: { _id: "test-id", email: "test@example.com", displayName: "Test", isEmailVerified: true }
+  }));
+});
+```
+This is faster and more reliable than using the full login flow.

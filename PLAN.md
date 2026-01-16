@@ -300,19 +300,21 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 5.1: Complete Auth E2E Test Suite
 
-- [ ] Ensure `e2e/auth.spec.ts` covers all auth flows
-- [ ] Test: Sign up with email/password
-- [ ] Test: Login with email/password
-- [ ] Test: Invalid credentials error message
-- [ ] Test: Logout flow clears user state
-- [ ] Test: Magic link request shows confirmation
-- [ ] Test: Forgot password request shows confirmation
-- [ ] All tests pass
+- [x] Ensure `e2e/auth.spec.ts` covers all auth flows
+- [x] Test: Sign up with email/password
+- [x] Test: Login with email/password
+- [x] Test: Invalid credentials error message
+- [x] Test: Logout flow clears user state
+- [x] Test: Magic link request shows confirmation
+- [x] Test: Forgot password request shows confirmation
+- [x] All tests pass
 
-**Files to Modify/Verify**:
-- `e2e/auth.spec.ts`
+**Files Modified**:
+- `e2e/auth.spec.ts` - Rewrote with 15 comprehensive E2E tests covering all auth flows
 
 **Dependencies**: All Phase 1, 3, 4 tasks
+
+**Status**: COMPLETED - Auth E2E test suite covers login, signup, magic link, forgot password, logout, and dashboard access flows (15 tests total)
 
 ---
 

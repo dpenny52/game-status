@@ -126,3 +126,27 @@ Modal for requesting password reset links via email. Always shows success messag
   - `/settings` - Settings page
   - `/reset-password` - Password reset (requires ?token= param)
   - `/verify-magic-link` - Magic link verification (requires ?token= param)
+
+## E2E Testing Notes
+
+### Auth Flow Testing
+- Dashboard does NOT have Sign In buttons - go to `/settings` for auth UI
+- Settings page shows "Sign In" button when unauthenticated (data-testid="settings-login-button")
+- To test authenticated state, set localStorage directly:
+  ```javascript
+  localStorage.setItem("gamestatus_auth", JSON.stringify({
+    user: { _id: "test-id", email: "test@example.com", displayName: "Test", isEmailVerified: true }
+  }));
+  ```
+
+### Key Test IDs for Auth E2E
+- Login modal: `login-email-input`, `login-password-input`, `login-submit-button`, `login-error`
+- Signup modal: `signup-email-input`, `signup-displayname-input`, `signup-password-input`, `signup-confirm-password-input`, `signup-submit-button`
+- Magic link: `magic-link-option`, `magic-link-email-input`, `magic-link-submit`, `magic-link-sent`
+- Forgot password: `forgot-password-link`, `forgot-password-email-input`, `forgot-password-submit`, `forgot-password-success`, `forgot-password-back-link`
+- Settings page: `settings-page`, `settings-unauthenticated`, `settings-login-button`, `settings-logout-button`, `settings-confirm-logout`
+
+### Testing Best Practices
+- Clear localStorage before each test to ensure fresh state
+- Use `await expect().toBeVisible({ timeout: X })` with proper timeouts for async operations
+- E2E tests that need authenticated state can inject user via localStorage instead of full login flow
