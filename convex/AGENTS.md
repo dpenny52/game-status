@@ -20,3 +20,16 @@
 - `games.platform` - Publisher grouping (blizzard, riot, steam, epic, mojang, squareenix)
 - `games.isActive` - Set to false to hide from dashboard without deleting
 - `serverStatusRecords` - One record per (gameId, region) combination
+
+## Convex Runtime Notes
+
+- `Buffer` is NOT available in Convex runtime - use `btoa()` for base64 encoding
+- When looping through regions in fetchers, use `continue` not `return` to skip failed regions
+- `ctx.runMutation()` in actions runs the mutation asynchronously
+
+## Blizzard API
+
+- OAuth2 client credentials flow: `https://{region}.battle.net/oauth/token`
+- Requires `BLIZZARD_CLIENT_ID` and `BLIZZARD_CLIENT_SECRET` env vars
+- Taiwan (tw) region uses separate auth and may fail with standard credentials
+- Real-time status API not available for most games - returns "unknown"
