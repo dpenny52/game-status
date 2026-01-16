@@ -560,6 +560,59 @@ export const getUserById = query({
   },
 });
 
+/**
+ * Validate a password reset token.
+ *
+ * Checks if the token exists, hasn't been used, and hasn't expired.
+ * Used by the ResetPassword page to validate tokens before showing the form.
+ *
+ * @param token - The password reset token from the URL
+ * @returns Validation result with valid flag and optional error message
+ *
+ * @example
+ * ```typescript
+ * const result = useQuery(api.auth.validatePasswordResetToken, { token });
+ * if (result?.valid) {
+ *   // Show password reset form
+ * } else {
+ *   // Show error: result?.error
+ * }
+ * ```
+ */
+export const validatePasswordResetToken = query({
+  args: {
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { token } = args;
+
+    // Find token record by token value
+    const tokenRecord = await ctx.db
+      .query("passwordResetTokens")
+      .withIndex("by_token", (q) => q.eq("token", token))
+      .first();
+
+    // Token not found
+    if (!tokenRecord) {
+      return { valid: false, error: "Invalid or expired reset link" };
+    }
+
+    // Token already used
+    if (tokenRecord.isUsed) {
+      return { valid: false, error: "This reset link has already been used" };
+    }
+
+    // Check expiration using expiresAt field
+    const expiresAt = tokenRecord.expiresAt as number;
+    if (Date.now() > expiresAt) {
+      return { valid: false, error: "Reset link has expired. Please request a new one." };
+    }
+
+    // Token is valid
+    return { valid: true };
+  },
+});
+
 // Helper functions for password hashing
 // Note: In production, use proper libraries like bcrypt or argon2
 

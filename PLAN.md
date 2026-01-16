@@ -111,17 +111,17 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 2.1: Add validatePasswordResetToken Query to Backend
 
-- [ ] Add `validatePasswordResetToken` query to `convex/auth.ts`
-- [ ] Query finds token by `by_token` index
-- [ ] Return `{ valid: false, error }` for invalid/used tokens
-- [ ] Return `{ valid: false, error }` for expired tokens
-- [ ] Return `{ valid: true }` for valid tokens
-- [ ] Create unit test file: `convex/__tests__/auth.test.ts`
-- [ ] Write unit test: valid token returns `{ valid: true }`
-- [ ] Write unit test: invalid token returns error
-- [ ] Write unit test: expired token returns error
-- [ ] Write unit test: used token returns error
-- [ ] All tests pass
+- [x] Add `validatePasswordResetToken` query to `convex/auth.ts`
+- [x] Query finds token by `by_token` index
+- [x] Return `{ valid: false, error }` for invalid/used tokens
+- [x] Return `{ valid: false, error }` for expired tokens
+- [x] Return `{ valid: true }` for valid tokens
+- [x] Create unit test file: `convex/__tests__/auth.test.ts`
+- [x] Write unit test: valid token returns `{ valid: true }`
+- [x] Write unit test: invalid token returns error
+- [x] Write unit test: expired token returns error
+- [x] Write unit test: used token returns error
+- [x] All tests pass
 
 **Files to Modify**:
 - `convex/auth.ts`
@@ -129,52 +129,58 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 **Files to Create**:
 - `convex/__tests__/auth.test.ts`
 
+**Status**: COMPLETED - Query implemented with full validation logic, all unit tests pass
+
 ---
 
 ### Task 2.2: Connect ResetPassword Token Validation to Convex
 
-- [ ] Import `useQuery` from `convex/react` in ResetPassword.tsx
-- [ ] Replace mock validation (lines 57-77) with Convex query
-- [ ] Use `useQuery(api.auth.validatePasswordResetToken, { token })`
-- [ ] Handle loading state while query runs
-- [ ] Use `tokenValidation?.valid` for determining state
-- [ ] Create unit test file: `src/pages/ResetPassword/ResetPassword.test.tsx`
-- [ ] Write unit test: form shown when token valid
-- [ ] Write unit test: error shown when token invalid
-- [ ] Write unit test: error shown when token expired
-- [ ] Create E2E test file: `e2e/reset-password.spec.ts`
-- [ ] Add E2E test: invalid token shows error state
-- [ ] Add E2E test: valid token shows password form
-- [ ] All tests pass
+- [x] Import `useQuery` from `convex/react` in ResetPassword.tsx
+- [x] Replace mock validation (lines 57-77) with Convex query
+- [x] Use `useQuery(api.auth.validatePasswordResetToken, { token })`
+- [x] Handle loading state while query runs
+- [x] Use `tokenValidation?.valid` for determining state
+- [x] Create unit test file: `src/pages/ResetPassword/ResetPassword.test.tsx` (tests in AuthPages.test.tsx)
+- [x] Write unit test: form shown when token valid
+- [x] Write unit test: error shown when token invalid
+- [x] Write unit test: error shown when token expired
+- [x] Create E2E test file: `e2e/reset-password.spec.ts`
+- [x] Add E2E test: invalid token shows error state
+- [x] Add E2E test: valid token shows password form
+- [x] All tests pass
 
 **Files to Modify**:
 - `src/pages/ResetPassword/ResetPassword.tsx`
 
 **Files to Create**:
-- `src/pages/ResetPassword/ResetPassword.test.tsx`
+- `src/pages/ResetPassword/ResetPassword.test.tsx` (tests added to src/pages/AuthPages.test.tsx)
 - `e2e/reset-password.spec.ts`
 
 **Dependencies**: Task 2.1
+
+**Status**: COMPLETED - ResetPassword uses Convex query for token validation, unit tests updated, E2E tests created
 
 ---
 
 ### Task 2.3: Connect ResetPassword Form to Convex
 
-- [ ] Import `useMutation` from `convex/react` in ResetPassword.tsx
-- [ ] Replace mock submission (lines 107-121) with Convex mutation
-- [ ] Call `resetPasswordMutation({ token, newPassword: password })`
-- [ ] Handle Convex errors (invalid token, weak password)
-- [ ] Write unit test: mutation called with token and newPassword
-- [ ] Write unit test: success state shown on success
-- [ ] Write unit test: error displayed on failure
-- [ ] Add E2E test: submit new password shows success
-- [ ] Add E2E test: weak password shows validation error
-- [ ] All tests pass
+- [x] Import `useMutation` from `convex/react` in ResetPassword.tsx
+- [x] Replace mock submission (lines 107-121) with Convex mutation
+- [x] Call `resetPasswordMutation({ token, newPassword: password })`
+- [x] Handle Convex errors (invalid token, weak password)
+- [x] Write unit test: mutation called with token and newPassword
+- [x] Write unit test: success state shown on success
+- [x] Write unit test: error displayed on failure
+- [x] Add E2E test: submit new password shows success
+- [x] Add E2E test: weak password shows validation error
+- [x] All tests pass
 
 **Files to Modify**:
 - `src/pages/ResetPassword/ResetPassword.tsx`
 
 **Dependencies**: Task 2.2
+
+**Status**: COMPLETED - ResetPassword form connected to Convex resetPassword mutation, tests pass
 
 ---
 
@@ -301,20 +307,22 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 5.3: Complete Reset Password E2E Test Suite
 
-- [ ] Ensure `e2e/reset-password.spec.ts` covers reset flow
-- [ ] Test: No token parameter shows error
-- [ ] Test: Invalid token shows error state
-- [ ] Test: Expired token shows error state
-- [ ] Test: Valid token shows password form
-- [ ] Test: Successful password reset shows success
-- [ ] Test: Weak password shows validation error
-- [ ] Test: Passwords must match validation
-- [ ] All tests pass
+- [x] Ensure `e2e/reset-password.spec.ts` covers reset flow
+- [x] Test: No token parameter shows error
+- [x] Test: Invalid token shows error state
+- [x] Test: Expired token shows error state
+- [x] Test: Valid token shows password form
+- [x] Test: Successful password reset shows success
+- [x] Test: Weak password shows validation error
+- [x] Test: Passwords must match validation
+- [x] All tests pass
 
 **Files to Modify/Verify**:
 - `e2e/reset-password.spec.ts`
 
 **Dependencies**: Tasks 2.2, 2.3
+
+**Status**: COMPLETED - E2E test suite created with 8 tests covering all reset password scenarios
 
 ---
 

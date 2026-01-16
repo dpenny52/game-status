@@ -7,6 +7,8 @@
  * @module ResetPassword
  */
 import React, { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   validatePassword,
   validatePasswordMatch,
@@ -36,8 +38,6 @@ export function ResetPassword(): JSX.Element {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(true);
-  const [isTokenValid, setIsTokenValid] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
@@ -48,34 +48,23 @@ export function ResetPassword(): JSX.Element {
 
     if (!tokenParam) {
       setTokenError("No reset token provided. Please request a new password reset link.");
-      setIsValidating(false);
       return;
     }
 
     setToken(tokenParam);
-
-    // Validate token (in production, this would call Convex)
-    // For now, we simulate token validation
-    const validateToken = async () => {
-      try {
-        // Simulate API call to validate token
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // For demo purposes, accept any non-empty token
-        if (tokenParam.length > 0) {
-          setIsTokenValid(true);
-        } else {
-          setTokenError("Invalid or expired reset link. Please request a new one.");
-        }
-      } catch (_error) {
-        setTokenError("Failed to validate reset link. Please try again.");
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    validateToken();
   }, []);
+
+  // Use Convex query to validate token
+  const tokenValidation = useQuery(
+    api.auth.validatePasswordResetToken,
+    token ? { token } : "skip"
+  );
+
+  // Use Convex mutation to reset password
+  const resetPasswordMutation = useMutation(api.auth.resetPassword);
+
+  // Derive validation state from Convex query
+  const isValidating = token !== null && tokenValidation === undefined;
 
   // Handle form submission
   const handleSubmit = useCallback(
@@ -101,13 +90,17 @@ export function ResetPassword(): JSX.Element {
         return;
       }
 
+      if (!token) {
+        setErrors({ general: "No reset token provided" });
+        return;
+      }
+
       setErrors({});
       setIsLoading(true);
 
       try {
-        // In production, this would call the Convex resetPassword mutation
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
+        // Call Convex resetPassword mutation
+        await resetPasswordMutation({ token, newPassword: password });
         setIsSuccess(true);
       } catch (error) {
         setErrors({
@@ -120,7 +113,7 @@ export function ResetPassword(): JSX.Element {
         setIsLoading(false);
       }
     },
-    [password, confirmPassword, token]
+    [password, confirmPassword, token, resetPasswordMutation]
   );
 
   // Validating token state
@@ -136,8 +129,11 @@ export function ResetPassword(): JSX.Element {
     );
   }
 
-  // Token error state
-  if (tokenError || !isTokenValid) {
+  // Determine error message - use tokenError from URL check, or error from Convex validation
+  const displayError = tokenError || tokenValidation?.error || "This reset link is invalid or has expired.";
+
+  // Token error state - show if there's a URL error OR if Convex validation returned invalid
+  if (tokenError || (tokenValidation && !tokenValidation.valid)) {
     return (
       <div className="reset-password-page" data-testid="reset-password-error">
         <div className="reset-password-container">
@@ -155,7 +151,7 @@ export function ResetPassword(): JSX.Element {
                 <line x1="9" y1="9" x2="15" y2="15" />
               </svg>
               <h2>Reset Link Invalid</h2>
-              <p>{tokenError || "This reset link is invalid or has expired."}</p>
+              <p>{displayError}</p>
               <a href="/" className="reset-password-link">
                 Return to Home
               </a>

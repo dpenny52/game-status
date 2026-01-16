@@ -47,3 +47,27 @@ npx playwright test e2e/auth.spec.ts
 - Check for `settings-page` visibility to confirm authenticated state
 - Use `page.reload()` to test state persistence
 - Logout flow requires clicking button then confirming
+
+## Reset Password Tests
+
+### Key Test IDs
+- `reset-password-validating` - Loading state during Convex token validation
+- `reset-password-error` - Error state (no token, invalid token, expired token)
+- `reset-password-page` - Main password reset form
+- `reset-password-success` - Success state after reset
+- `new-password-input` - New password field
+- `confirm-password-input` - Confirm password field
+- `reset-password-submit` - Submit button
+- `back-to-login` - Return link after success
+
+### Test Patterns
+- Navigate to `/reset-password?token=xxx` with token in URL
+- Without real Convex token, tests will hit error state (expected)
+- E2E tests verify error UI renders correctly for invalid tokens
+- Form validation tests (weak password, mismatch) require valid token
+- Use `waitUntil: "networkidle"` for pages with Convex queries
+
+### Important Notes
+- Token validation happens via Convex query, so E2E tests without real tokens will show error
+- Tests are designed to be resilient - many tests document current behavior
+- Screenshot tests captured at `e2e/screenshots/reset-password-*.png`

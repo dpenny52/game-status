@@ -14,9 +14,12 @@ import { Settings } from "./Settings";
 import { ResetPassword } from "./ResetPassword";
 
 // Mock convex hooks
+const mockUseQuery = vi.fn();
+const mockUseMutation = vi.fn(() => vi.fn().mockResolvedValue(true));
+
 vi.mock("convex/react", () => ({
-  useQuery: vi.fn(() => []),
-  useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+  useQuery: (...args: unknown[]) => mockUseQuery(...args),
+  useMutation: () => mockUseMutation(),
 }));
 
 // Mock localStorage
@@ -58,6 +61,8 @@ Object.defineProperty(window, "location", {
 beforeEach(() => {
   localStorageMock.clear();
   mockSearch = "";
+  // Default: useQuery returns empty array (for Settings subscription queries)
+  mockUseQuery.mockReturnValue([]);
 });
 
 // Cleanup after each test
@@ -172,6 +177,8 @@ describe("Settings Page", () => {
 describe("ResetPassword Page", () => {
   it("should render at /reset-password route", async () => {
     mockSearch = "?token=valid-token-123";
+    // Mock valid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: true });
 
     render(<ResetPassword />);
 
@@ -196,8 +203,52 @@ describe("ResetPassword Page", () => {
     expect(screen.getByText(/No reset token provided/)).toBeInTheDocument();
   });
 
+  it("should show error when token is invalid", async () => {
+    mockSearch = "?token=invalid-token";
+    // Mock invalid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: false, error: "Invalid or expired reset link" });
+
+    render(<ResetPassword />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reset-password-error")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Invalid or expired reset link/)).toBeInTheDocument();
+  });
+
+  it("should show error when token is expired", async () => {
+    mockSearch = "?token=expired-token";
+    // Mock expired token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: false, error: "Reset link has expired. Please request a new one." });
+
+    render(<ResetPassword />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reset-password-error")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Reset link has expired/)).toBeInTheDocument();
+  });
+
+  it("should show error when token is already used", async () => {
+    mockSearch = "?token=used-token";
+    // Mock used token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: false, error: "This reset link has already been used" });
+
+    render(<ResetPassword />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reset-password-error")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/This reset link has already been used/)).toBeInTheDocument();
+  });
+
   it("should have password and confirm password fields", async () => {
     mockSearch = "?token=valid-token-123";
+    // Mock valid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: true });
 
     render(<ResetPassword />);
 
@@ -211,6 +262,8 @@ describe("ResetPassword Page", () => {
 
   it("should validate password requirements", async () => {
     mockSearch = "?token=valid-token-123";
+    // Mock valid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: true });
 
     render(<ResetPassword />);
 
@@ -236,8 +289,39 @@ describe("ResetPassword Page", () => {
     });
   });
 
+  it("should validate passwords must match", async () => {
+    mockSearch = "?token=valid-token-123";
+    // Mock valid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: true });
+
+    render(<ResetPassword />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("new-password-input")).toBeInTheDocument();
+    });
+
+    // Enter mismatched passwords
+    fireEvent.change(screen.getByTestId("new-password-input"), {
+      target: { value: "ValidPassword123" },
+    });
+    fireEvent.change(screen.getByTestId("confirm-password-input"), {
+      target: { value: "DifferentPassword456" },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByTestId("reset-password-submit"));
+
+    // Should show validation error
+    await waitFor(() => {
+      const alerts = screen.getAllByRole("alert");
+      expect(alerts.length).toBeGreaterThan(0);
+    });
+  });
+
   it("should show success message after reset", async () => {
     mockSearch = "?token=valid-token-123";
+    // Mock valid token response from Convex query
+    mockUseQuery.mockReturnValue({ valid: true });
 
     render(<ResetPassword />);
 
