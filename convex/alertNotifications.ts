@@ -13,6 +13,7 @@ import { regionValidator } from "./schema";
 import type { Id } from "./_generated/dataModel";
 import type { Region } from "./schema";
 import { generateSecureToken } from "./lib/authUtils";
+import { internal } from "./_generated/api";
 
 /**
  * Constants for alert notification configuration.
@@ -233,9 +234,6 @@ export const processAlerts = internalAction({
     region: regionValidator,
   },
   handler: async (ctx, { gameId, region }) => {
-    // Import internal references dynamically to avoid circular dependency issues
-    const { internal } = await import("./_generated/api");
-
     console.log(`[INFO] Processing alerts for game ${gameId}, region ${region}`);
 
     // Get game details
@@ -298,9 +296,6 @@ export const sendAlertEmail = internalAction({
     attemptNumber: v.number(),
   },
   handler: async (ctx, args) => {
-    // Import internal references dynamically to avoid circular dependency issues
-    const { internal } = await import("./_generated/api");
-
     const { subscriptionId, userEmail, gameName, region, unsubscribeToken, attemptNumber } = args;
 
     console.log(

@@ -14,6 +14,7 @@ import { statusValidator, regionValidator } from "./schema";
 import type { Status, Region } from "./schema";
 import type { Id } from "./_generated/dataModel";
 import { shouldTriggerAlert } from "./lib/transitionDetection";
+import { internal } from "./_generated/api";
 
 /**
  * Upserts a server status record for a game and region.
@@ -34,9 +35,6 @@ export const upsertServerStatus = internalMutation({
     statusMessage: v.optional(v.string()),
   },
   handler: async (ctx, { gameSlug, status, region, statusMessage }) => {
-    // Import internal references dynamically to avoid circular dependency issues
-    const { internal } = await import("./_generated/api");
-
     const now = Date.now();
 
     // Find the game by slug
@@ -129,9 +127,6 @@ export const batchUpsertServerStatus = internalMutation({
     ),
   },
   handler: async (ctx, { records }) => {
-    // Import internal references dynamically to avoid circular dependency issues
-    const { internal } = await import("./_generated/api");
-
     const now = Date.now();
     const results: { gameSlug: string; success: boolean; error?: string }[] = [];
     const alertsToProcess: Array<{ gameId: Id<"games">; region: Region }> = [];
