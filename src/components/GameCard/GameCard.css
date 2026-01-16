@@ -1,7 +1,7 @@
 /**
  * GameCard Styles
  *
- * Styling for game cards with status indicators and timestamps.
+ * Styling for game cards with status indicators, timestamps, and favorites.
  */
 
 .game-card {
@@ -14,10 +14,27 @@
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
 }
 
 .game-card:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Favorited card styling - white drop-shadow border */
+.game-card-favorited {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.game-card-favorited:hover {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* On dark backgrounds, enhance the glow effect */
+@media (prefers-color-scheme: dark) {
+  .game-card-favorited {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(245, 158, 11, 0.3);
+  }
 }
 
 /* Status-based border accent */
@@ -47,11 +64,27 @@
   background-color: #fefce8;
 }
 
+/* Favorite toggle wrapper - positioned in top-left corner */
+.game-card-favorite-wrapper {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1;
+}
+
 /* Header */
 .game-card-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* Add padding-left to account for favorite toggle when present */
+  padding-left: 0;
+}
+
+/* When favorite toggle is present, add space for it */
+.game-card-favorited .game-card-header,
+.game-card:has(.game-card-favorite-wrapper) .game-card-header {
+  padding-left: 1.75rem;
 }
 
 .game-card-icon {

@@ -2,12 +2,24 @@
  * Tests for GameCard Component
  *
  * Tests verify that GameCard displays game information, status,
- * and timestamps correctly.
+ * timestamps, and favorites correctly.
  */
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { GameCard } from "./GameCard";
 import type { GameCardProps } from "./GameCard";
+import type { Id } from "../../../convex/_generated/dataModel";
+
+// Mock the auth hook
+const mockUseAuth = vi.fn();
+vi.mock("../../hooks/useAuth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// Mock the useMutation hook from convex
+vi.mock("convex/react", () => ({
+  useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+}));
 
 afterEach(() => {
   cleanup();
@@ -21,6 +33,12 @@ describe("GameCard Component", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
+    vi.clearAllMocks();
+    // Default to not authenticated
+    mockUseAuth.mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+    });
   });
 
   const baseProps: GameCardProps = {
@@ -121,5 +139,120 @@ describe("GameCard Component", () => {
     expect(
       screen.getByText("Scheduled maintenance in progress")
     ).toBeInTheDocument();
+  });
+
+  describe("Favorites Integration", () => {
+    const mockGameId = "game_123" as Id<"games">;
+
+    it("should render FavoriteToggle when authenticated and gameId is provided", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        user: { _id: "user_123", email: "test@example.com", displayName: "Test" },
+      });
+
+      render(
+        <GameCard
+          {...baseProps}
+          gameId={mockGameId}
+          isFavorited={false}
+        />
+      );
+
+      // Check that FavoriteToggle is rendered
+      const favoriteToggle = screen.queryByTestId("favorite-toggle");
+      expect(favoriteToggle).toBeInTheDocument();
+    });
+
+    it("should hide FavoriteToggle when not authenticated", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+      });
+
+      render(
+        <GameCard
+          {...baseProps}
+          gameId={mockGameId}
+          isFavorited={false}
+        />
+      );
+
+      // Check that FavoriteToggle is NOT rendered
+      const favoriteToggle = screen.queryByTestId("favorite-toggle");
+      expect(favoriteToggle).not.toBeInTheDocument();
+    });
+
+    it("should display favorited styling when isFavorited is true", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        user: { _id: "user_123", email: "test@example.com", displayName: "Test" },
+      });
+
+      render(
+        <GameCard
+          {...baseProps}
+          gameId={mockGameId}
+          isFavorited={true}
+        />
+      );
+
+      const card = screen.getByTestId("game-card");
+      expect(card).toHaveClass("game-card-favorited");
+    });
+
+    it("should not have favorited styling when isFavorited is false", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        user: { _id: "user_123", email: "test@example.com", displayName: "Test" },
+      });
+
+      render(
+        <GameCard
+          {...baseProps}
+          gameId={mockGameId}
+          isFavorited={false}
+        />
+      );
+
+      const card = screen.getByTestId("game-card");
+      expect(card).not.toHaveClass("game-card-favorited");
+    });
+
+    it("should not show favorited styling for anonymous users", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+      });
+
+      render(
+        <GameCard
+          {...baseProps}
+          gameId={mockGameId}
+          isFavorited={true}
+        />
+      );
+
+      const card = screen.getByTestId("game-card");
+      expect(card).not.toHaveClass("game-card-favorited");
+    });
+
+    it("should work without gameId prop (backward compatibility)", () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        user: { _id: "user_123", email: "test@example.com", displayName: "Test" },
+      });
+
+      render(<GameCard {...baseProps} />);
+
+      const card = screen.getByTestId("game-card");
+      expect(card).toBeInTheDocument();
+
+      // Should not have favorited styling
+      expect(card).not.toHaveClass("game-card-favorited");
+
+      // Should not have favorite toggle
+      const favoriteToggle = screen.queryByTestId("favorite-toggle");
+      expect(favoriteToggle).not.toBeInTheDocument();
+    });
   });
 });

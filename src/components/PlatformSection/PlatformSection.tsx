@@ -2,13 +2,14 @@
  * PlatformSection Component
  *
  * Displays a collapsible section for a platform/publisher with aggregate
- * status summary and a grid of game cards.
+ * status summary and a grid of game cards with favorites support.
  *
  * @module PlatformSection
  */
 import React, { useState, useMemo } from "react";
 import { GameCard, type GameData, type StatusRecord } from "../GameCard";
 import { StatusIndicator, type Status } from "../StatusIndicator";
+import type { Id } from "../../../convex/_generated/dataModel";
 import "./PlatformSection.css";
 
 /**
@@ -23,11 +24,13 @@ export type Platform =
   | "squareenix";
 
 /**
- * Combined game and status data.
+ * Combined game and status data with optional favorites.
  */
 export interface GameWithStatus {
   game: GameData;
   statusRecords: StatusRecord[];
+  /** Whether this game is favorited by the current user */
+  isFavorited?: boolean;
 }
 
 /**
@@ -83,11 +86,15 @@ function getGamePrimaryStatus(statusRecords: StatusRecord[]): Status {
 /**
  * PlatformSection displays a collapsible section with game cards.
  *
+ * Sorting behavior:
+ * - If favorites data is available, favorites appear first (alphabetically by displayName)
+ * - Non-favorites follow, sorted by sortOrder
+ *
  * @example
  * ```tsx
  * <PlatformSection
  *   platform="blizzard"
- *   games={[{ game: {...}, statusRecords: [...] }]}
+ *   games={[{ game: {...}, statusRecords: [...], isFavorited: true }]}
  *   defaultExpanded
  * />
  * ```
@@ -128,9 +135,24 @@ export function PlatformSection({
     return { onlineCount: online, totalCount: total, aggregateStatus: status };
   }, [games]);
 
-  // Sort games by sortOrder
+  // Sort games: favorites first (alphabetically), then non-favorites (by sortOrder)
   const sortedGames = useMemo(() => {
-    return [...games].sort((a, b) => a.game.sortOrder - b.game.sortOrder);
+    return [...games].sort((a, b) => {
+      const aIsFavorited = a.isFavorited ?? false;
+      const bIsFavorited = b.isFavorited ?? false;
+
+      // Favorites come first
+      if (aIsFavorited && !bIsFavorited) return -1;
+      if (!aIsFavorited && bIsFavorited) return 1;
+
+      // Within favorites: sort alphabetically by displayName
+      if (aIsFavorited && bIsFavorited) {
+        return a.game.displayName.localeCompare(b.game.displayName);
+      }
+
+      // Within non-favorites: sort by sortOrder
+      return a.game.sortOrder - b.game.sortOrder;
+    });
   }, [games]);
 
   const handleToggle = () => {
@@ -185,6 +207,8 @@ export function PlatformSection({
                 key={gameData.game._id}
                 game={gameData.game}
                 statusRecords={gameData.statusRecords}
+                gameId={gameData.game._id as unknown as Id<"games">}
+                isFavorited={gameData.isFavorited}
               />
             ))}
           </div>

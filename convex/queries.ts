@@ -10,7 +10,7 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { platformValidator } from "./schema";
-import type { Id, GamesDocument, ServerStatusRecordsDocument, Platform } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 
 /**
  * Type representing combined game and status data for dashboard display.
@@ -33,6 +33,8 @@ export interface GameWithStatus {
     statusChangedAt: number;
     statusMessage?: string;
   }>;
+  /** Whether this game is favorited by the current user */
+  isFavorited?: boolean;
 }
 
 /**
@@ -122,6 +124,106 @@ export const getAllGamesWithStatus = query({
           isActive: game.isActive,
         },
         statusRecords: gameStatusRecords,
+      };
+    });
+
+    return gamesWithStatus;
+  },
+});
+
+/**
+ * Fetches all active games with their current status records, sorted with favorites first.
+ *
+ * This query is designed for authenticated users who have favorites. It:
+ * - Fetches the user's favorites if authenticated
+ * - Returns games sorted with favorites first (alphabetically by displayName)
+ * - Then non-favorites sorted by sortOrder
+ * - Includes isFavorited boolean on each game for UI rendering
+ *
+ * @returns Array of games with status records and favorite state, sorted appropriately
+ *
+ * @example
+ * // In a React component:
+ * const gamesWithStatus = useQuery(api.queries.getAllGamesWithStatusAndFavorites);
+ */
+export const getAllGamesWithStatusAndFavorites = query({
+  args: {},
+  handler: async (ctx): Promise<GameWithStatus[]> => {
+    // Fetch all active games
+    const allGames = await ctx.db.query("games").collect();
+
+    // Cast to proper types and filter active games
+    const games = allGames as unknown as GameQueryResult[];
+    const activeGames = games.filter((game) => game.isActive);
+
+    // Fetch all status records
+    const allStatusRecords = await ctx.db.query("serverStatusRecords").collect();
+    const statusRecords = allStatusRecords as unknown as StatusRecordQueryResult[];
+
+    // Get user favorites if authenticated
+    let favoriteGameIds = new Set<string>();
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity?.email) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+        .first();
+
+      if (user) {
+        const userId = user._id as Id<"users">;
+        const favorites = await ctx.db
+          .query("favorites")
+          .withIndex("by_userId", (q) => q.eq("userId", userId))
+          .collect();
+
+        favoriteGameIds = new Set(favorites.map((f) => f.gameId as string));
+      }
+    }
+
+    // Sort games: favorites first (alphabetically), then non-favorites (by sortOrder)
+    const sortedGames = [...activeGames].sort((a, b) => {
+      const aIsFavorited = favoriteGameIds.has(a._id);
+      const bIsFavorited = favoriteGameIds.has(b._id);
+
+      // Favorites come first
+      if (aIsFavorited && !bIsFavorited) return -1;
+      if (!aIsFavorited && bIsFavorited) return 1;
+
+      // Within favorites: sort alphabetically by displayName
+      if (aIsFavorited && bIsFavorited) {
+        return a.displayName.localeCompare(b.displayName);
+      }
+
+      // Within non-favorites: sort by sortOrder
+      return a.sortOrder - b.sortOrder;
+    });
+
+    // Join games with their status records
+    const gamesWithStatus: GameWithStatus[] = sortedGames.map((game) => {
+      const gameStatusRecords = statusRecords
+        .filter((sr) => sr.gameId === game._id)
+        .map((sr) => ({
+          _id: sr._id,
+          status: sr.status,
+          region: sr.region,
+          lastCheckedAt: sr.lastCheckedAt,
+          statusChangedAt: sr.statusChangedAt,
+          statusMessage: sr.statusMessage,
+        }));
+
+      return {
+        game: {
+          _id: game._id,
+          slug: game.slug,
+          displayName: game.displayName,
+          platform: game.platform,
+          iconUrl: game.iconUrl,
+          sortOrder: game.sortOrder,
+          isActive: game.isActive,
+        },
+        statusRecords: gameStatusRecords,
+        isFavorited: favoriteGameIds.has(game._id),
       };
     });
 

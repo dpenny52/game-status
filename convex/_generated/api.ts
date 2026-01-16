@@ -6,6 +6,7 @@
  */
 
 import type { FunctionReference } from "convex/server";
+import type { Id } from "./dataModel";
 
 type Platform = "blizzard" | "riot" | "steam" | "epic" | "mojang" | "squareenix";
 type Status = "online" | "offline" | "degraded" | "maintenance" | "unknown";
@@ -32,6 +33,8 @@ interface GameWithStatus {
     statusChangedAt: number;
     statusMessage?: string;
   }>;
+  /** Whether this game is favorited by the current user */
+  isFavorited?: boolean;
 }
 
 /**
@@ -141,11 +144,80 @@ export const api = {
       Record<string, never>,
       GameWithStatus[]
     >,
+    getAllGamesWithStatusAndFavorites: "queries:getAllGamesWithStatusAndFavorites" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      GameWithStatus[]
+    >,
     getGamesByPlatform: "queries:getGamesByPlatform" as unknown as FunctionReference<
       "query",
       "public",
       { platform: Platform },
       GameWithStatus[]
+    >,
+  },
+  favorites: {
+    toggleFavorite: "favorites:toggleFavorite" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { gameId: Id<"games"> },
+      boolean
+    >,
+    getUserFavorites: "favorites:getUserFavorites" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      string[]
+    >,
+    isFavorited: "favorites:isFavorited" as unknown as FunctionReference<
+      "query",
+      "public",
+      { gameId: Id<"games"> },
+      boolean
+    >,
+  },
+  auth: {
+    getCurrentUser: "auth:getCurrentUser" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      {
+        _id: string;
+        email: string;
+        displayName: string;
+        isEmailVerified: boolean;
+        providerType?: string;
+        providerId?: string;
+        updatedAt: number;
+      } | null
+    >,
+    isAuthenticated: "auth:isAuthenticated" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      boolean
+    >,
+    signUp: "auth:signUp" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { email: string; password: string; displayName: string },
+      { userId: string }
+    >,
+    login: "auth:login" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { email: string; password: string },
+      {
+        user: {
+          _id: string;
+          email: string;
+          displayName: string;
+          isEmailVerified: boolean;
+          providerType?: string;
+          providerId?: string;
+        };
+      }
     >,
   },
 };

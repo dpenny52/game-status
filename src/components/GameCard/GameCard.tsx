@@ -2,15 +2,18 @@
  * GameCard Component
  *
  * Displays a game card with icon, name, platform, status indicator,
- * timestamps, and regional status breakdown.
+ * timestamps, regional status breakdown, and favorite toggle.
  *
  * @module GameCard
  */
 import React, { useMemo } from "react";
 import { StatusIndicator, type Status } from "../StatusIndicator";
 import { RegionalStatus, type RegionStatus, type Region } from "../RegionalStatus";
+import { FavoriteToggle } from "../FavoriteToggle";
 import { useRelativeTime } from "../../hooks/useRelativeTime";
 import { isStale } from "../../utils/timeFormat";
+import { useAuth } from "../../hooks/useAuth";
+import type { Id } from "../../../convex/_generated/dataModel";
 import "./GameCard.css";
 
 /**
@@ -48,6 +51,12 @@ export interface GameCardProps {
   statusRecords: StatusRecord[];
   /** Additional CSS class names */
   className?: string;
+  /** Game ID for favorites toggle (required for favorites functionality) */
+  gameId?: Id<"games">;
+  /** Whether the game is favorited by the current user */
+  isFavorited?: boolean;
+  /** Callback when favorite state changes */
+  onFavoriteToggle?: (newState: boolean) => void;
 }
 
 /**
@@ -101,6 +110,8 @@ function isDownStatus(status: Status): boolean {
  *   statusRecords={[
  *     { _id: "s1", status: "online", region: "na", lastCheckedAt: Date.now(), statusChangedAt: Date.now() }
  *   ]}
+ *   gameId="game_123"
+ *   isFavorited={true}
  * />
  * ```
  */
@@ -108,7 +119,13 @@ export function GameCard({
   game,
   statusRecords,
   className = "",
+  gameId,
+  isFavorited = false,
+  onFavoriteToggle,
 }: GameCardProps): JSX.Element {
+  // Get auth state to conditionally show favorites
+  const { isAuthenticated } = useAuth();
+
   // Determine primary status
   const primaryStatus = useMemo(
     () => getPrimaryStatus(statusRecords),
@@ -154,11 +171,36 @@ export function GameCard({
 
   const showDownSince = isDownStatus(primaryStatus) && statusChangedAt;
 
+  // Determine if favorites UI should be shown
+  const showFavoritesUI = isAuthenticated && gameId;
+
+  // Build class names including favorited state
+  const cardClassNames = [
+    "game-card",
+    `game-card-status-${primaryStatus}`,
+    dataIsStale ? "game-card-stale" : "",
+    showFavoritesUI && isFavorited ? "game-card-favorited" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <article
-      className={`game-card game-card-status-${primaryStatus} ${dataIsStale ? "game-card-stale" : ""} ${className}`.trim()}
+      className={cardClassNames}
       data-testid="game-card"
     >
+      {/* Favorite toggle in top-left corner */}
+      {showFavoritesUI && (
+        <div className="game-card-favorite-wrapper">
+          <FavoriteToggle
+            gameId={gameId}
+            isFavorited={isFavorited}
+            onToggle={onFavoriteToggle}
+          />
+        </div>
+      )}
+
       <header className="game-card-header">
         <img
           src={game.iconUrl}

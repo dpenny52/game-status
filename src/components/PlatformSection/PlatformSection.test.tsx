@@ -9,6 +9,19 @@ import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { PlatformSection } from "./PlatformSection";
 import type { PlatformSectionProps } from "./PlatformSection";
 
+// Mock the auth hook
+vi.mock("../../hooks/useAuth", () => ({
+  useAuth: () => ({
+    isAuthenticated: false,
+    user: null,
+  }),
+}));
+
+// Mock the useMutation hook from convex
+vi.mock("convex/react", () => ({
+  useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+}));
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
@@ -133,5 +146,68 @@ describe("PlatformSection Component", () => {
     expect(screen.getByText("World of Warcraft")).toBeInTheDocument();
     expect(screen.getByText("Diablo IV")).toBeInTheDocument();
     expect(screen.getByText("Overwatch 2")).toBeInTheDocument();
+  });
+
+  describe("Favorites Sorting", () => {
+    it("should sort favorites first when favorites data is provided", () => {
+      const propsWithFavorites: PlatformSectionProps = {
+        platform: "blizzard",
+        games: [
+          {
+            game: {
+              _id: "game1",
+              slug: "world-of-warcraft",
+              displayName: "World of Warcraft",
+              platform: "blizzard",
+              iconUrl: "https://example.com/wow.png",
+              sortOrder: 1,
+              isActive: true,
+            },
+            statusRecords: [
+              {
+                _id: "status1",
+                status: "online",
+                region: "global",
+                lastCheckedAt: NOW - 60000,
+                statusChangedAt: NOW - 3600000,
+              },
+            ],
+            isFavorited: false,
+          },
+          {
+            game: {
+              _id: "game2",
+              slug: "diablo-iv",
+              displayName: "Diablo IV",
+              platform: "blizzard",
+              iconUrl: "https://example.com/d4.png",
+              sortOrder: 2,
+              isActive: true,
+            },
+            statusRecords: [
+              {
+                _id: "status2",
+                status: "online",
+                region: "global",
+                lastCheckedAt: NOW - 60000,
+                statusChangedAt: NOW - 3600000,
+              },
+            ],
+            isFavorited: true, // This one is favorited
+          },
+        ],
+      };
+
+      render(<PlatformSection {...propsWithFavorites} defaultExpanded />);
+
+      // Get all game card titles
+      const gameCards = screen.getAllByTestId("game-card");
+      expect(gameCards).toHaveLength(2);
+
+      // Diablo IV (favorited) should appear first
+      const titles = screen.getAllByRole("heading", { level: 3 });
+      expect(titles[0]).toHaveTextContent("Diablo IV");
+      expect(titles[1]).toHaveTextContent("World of Warcraft");
+    });
   });
 });

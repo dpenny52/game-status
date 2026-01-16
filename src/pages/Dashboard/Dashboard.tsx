@@ -2,13 +2,15 @@
  * Dashboard Page
  *
  * The main entry point of the application that displays all supported games
- * with their current server status organized by platform.
+ * with their current server status organized by platform. Supports favorites
+ * sorting for authenticated users.
  *
  * @module Dashboard
  */
 import React, { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../hooks/useAuth";
 import {
   PlatformSection,
   type Platform,
@@ -16,7 +18,6 @@ import {
 } from "../../components/PlatformSection";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { EmptyState } from "../../components/EmptyState";
-import { ErrorState } from "../../components/ErrorState";
 import { formatTime } from "../../utils/timeFormat";
 import "./Dashboard.css";
 
@@ -58,6 +59,16 @@ function groupByPlatform(
 /**
  * Dashboard displays all game server statuses organized by platform.
  *
+ * For authenticated users:
+ * - Uses getAllGamesWithStatusAndFavorites query for favorites sorting
+ * - Favorites appear first (alphabetically) within each platform section
+ * - Star icon visible on each game card for toggling favorites
+ *
+ * For anonymous users:
+ * - Uses getAllGamesWithStatus query (no favorites)
+ * - Standard sortOrder sorting
+ * - No star icons displayed
+ *
  * @example
  * ```tsx
  * <ConvexProvider client={convex}>
@@ -66,8 +77,19 @@ function groupByPlatform(
  * ```
  */
 export function Dashboard(): JSX.Element {
-  // Fetch all games with status from Convex
-  const gamesWithStatus = useQuery(api.queries.getAllGamesWithStatus);
+  // Get auth state to determine which query to use
+  const { isAuthenticated } = useAuth();
+
+  // Fetch games with status - use favorites-aware query for authenticated users
+  const gamesWithStatusAndFavorites = useQuery(
+    api.queries.getAllGamesWithStatusAndFavorites
+  );
+  const gamesWithStatusBasic = useQuery(api.queries.getAllGamesWithStatus);
+
+  // Use the appropriate data based on auth state
+  const gamesWithStatus = isAuthenticated
+    ? gamesWithStatusAndFavorites
+    : gamesWithStatusBasic;
 
   // Group games by platform
   const gamesByPlatform = useMemo(() => {

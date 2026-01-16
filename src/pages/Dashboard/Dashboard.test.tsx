@@ -13,9 +13,18 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+// Mock the auth hook
+vi.mock("../../hooks/useAuth", () => ({
+  useAuth: () => ({
+    isAuthenticated: false,
+    user: null,
+  }),
+}));
+
 // Mock the Convex useQuery hook
 vi.mock("convex/react", () => ({
   useQuery: vi.fn(),
+  useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
 }));
 
 import { useQuery } from "convex/react";
