@@ -13,6 +13,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
+import { generateSecureToken } from "./lib/authUtils";
 
 /**
  * Region type for subscriptions.
@@ -25,15 +26,11 @@ type Region = "na" | "eu" | "asia" | "oce" | "global";
 const ALL_REGIONS: Region[] = ["na", "eu", "asia", "oce", "global"];
 
 /**
- * Generate a secure random token for unsubscribe links.
+ * Generate a cryptographically secure random token for unsubscribe links.
+ * Uses crypto.getRandomValues() via the shared generateSecureToken utility.
  */
 function generateUnsubscribeToken(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  return generateSecureToken(32);
 }
 
 /**

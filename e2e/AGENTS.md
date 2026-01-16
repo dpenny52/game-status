@@ -213,3 +213,18 @@ if (cardCount > 0) {
 - Backend derives userId from authenticated identity's email
 - Frontend only passes `{ displayName }` to the mutation
 - This prevents User A from modifying User B's display name
+
+## Subscription Security Tests (Issue #9)
+
+### Test File
+`subscription-security.spec.ts` - Tests for secure token generation in subscriptions
+
+### Security Fix Details
+- Unsubscribe tokens now use `crypto.getRandomValues()` instead of `Math.random()`
+- Tokens have 256 bits of entropy (computationally infeasible to brute force)
+- Hex-encoded tokens are URL-safe without additional encoding
+
+### Key Test Patterns
+- Tests verify subscription creation/deletion flows work with secure tokens
+- Tests skip gracefully when Convex backend isn't available
+- Unit tests in `convex/__tests__/secureToken.test.ts` verify cryptographic properties

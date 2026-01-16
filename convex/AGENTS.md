@@ -92,3 +92,16 @@ The following games are seeded in `seedGames.ts` (11 total):
 - Frontend in AuthContext now only passes `displayName` to the mutation (no userId)
 - Test file: `convex/__tests__/auth.updateDisplayName.test.ts` - covers auth required, IDOR prevention
 - E2E tests: `e2e/auth-security.spec.ts` - "Display Name Update Authorization" section
+
+## Security - Cryptographically Secure Token Generation (Issue #9)
+
+- CRITICAL: Never use `Math.random()` for security tokens - it's predictable and NOT cryptographically secure
+- Pattern: Use `crypto.getRandomValues()` for all security-sensitive token generation
+- The shared `generateSecureToken()` in `convex/lib/authUtils.ts` provides proper CSPRNG-based tokens
+- Unsubscribe tokens in `subscriptions.ts` now use `generateSecureToken(32)` (256 bits of entropy)
+- Key benefits:
+  - 256-bit tokens are computationally infeasible to brute force (2^256 combinations)
+  - Tokens are unpredictable - knowledge of previous tokens doesn't help predict future ones
+  - Hex-encoded output is URL-safe without additional encoding
+- Test file: `convex/__tests__/secureToken.test.ts` - covers entropy, uniqueness, Math.random exclusion
+- E2E tests: `e2e/subscription-security.spec.ts` - integration tests for secure subscription flows
