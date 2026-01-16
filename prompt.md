@@ -1,7 +1,9 @@
 0a. familiarize yourself with the code in src/
 0b. pull down github issues for this repo ( https://github.com/dpenny52/game-status/ ) and study them
 
-implement the single highest priority issue from github - only work on a SINGLE issue
+if there are no open github issues then wait 20 minutes and exit, don't do anything else
+
+implement the single highest priority issue from github - only work on a SINGLE issue - if an issue is in progress continue it first
 
 take ownership of the github issue being addressed
 

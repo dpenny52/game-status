@@ -548,15 +548,53 @@ export const handleOAuthCallback = mutation({
 /**
  * Get user by ID.
  *
+ * Requires authentication. Users can only query their own data.
+ * Returns limited public fields to prevent information disclosure.
+ *
  * @param userId - The user ID to look up
- * @returns User document or null
+ * @returns User document with limited fields or null
+ * @throws Error if not authenticated or not authorized
  */
 export const getUserById = query({
   args: {
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.userId);
+    // Require authentication
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    // Get the current authenticated user
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Only allow users to query their own data (prevent IDOR)
+    if (currentUser._id !== args.userId) {
+      throw new Error("Not authorized to access this user's data");
+    }
+
+    // Get the requested user
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return null;
+    }
+
+    // Return only public/safe fields (exclude internal fields)
+    return {
+      _id: user._id,
+      email: user.email,
+      displayName: user.displayName,
+      isEmailVerified: user.isEmailVerified,
+      providerType: user.providerType,
+    };
   },
 });
 

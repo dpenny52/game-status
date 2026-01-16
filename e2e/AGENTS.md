@@ -179,3 +179,20 @@ if (cardCount > 0) {
   console.log("Test SKIPPED: No game cards visible");
 }
 ```
+
+## Security E2E Tests (Issue #11)
+
+### Test File
+`auth-security.spec.ts` - Tests for authentication security and IDOR prevention
+
+### Key Test Patterns
+- Unauthenticated users should not see user profile data
+- Authenticated users only see their own profile (not other users)
+- localStorage should not contain sensitive internal fields like `passwordHash`, `_creationTime`
+- Logout should completely clear auth data from localStorage
+
+### Test IDs Used
+- `settings-unauthenticated` - Login prompt for unauthenticated users
+- `settings-page` - Authenticated settings view
+- `profile-display-name` - User display name (only visible when authenticated)
+- `profile-email` - User email (protected data)

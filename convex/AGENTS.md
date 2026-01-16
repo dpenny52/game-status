@@ -73,3 +73,11 @@ The following games are seeded in `seedGames.ts` (11 total):
 
 - Unit tests: `convex/__tests__/seedGames.test.ts` validates all games are correctly structured
 - E2E tests: `e2e/dashboard.spec.ts` tests 11-15 verify all games display on dashboard
+
+## Security - IDOR Prevention (Issue #11)
+
+- `getUserById` query in `auth.ts` requires authentication and only allows users to query their own data
+- Pattern for secure queries: Always validate `currentUser._id === args.userId` to prevent IDOR attacks
+- Return limited public fields only - exclude internal fields like `_creationTime`, `updatedAt`, `providerId`
+- Error message consistency prevents user enumeration: "Not authorized" for both non-existent and unauthorized users
+- Test file: `convex/__tests__/auth.getUserById.test.ts` - covers auth required, IDOR prevention, field filtering
