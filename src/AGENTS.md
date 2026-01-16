@@ -76,3 +76,28 @@ mockUseQuery.mockReturnValue({ valid: false, error: "..." }); // For invalid tok
 - `new-password-input` / `confirm-password-input` - Password fields
 - `reset-password-submit` - Submit button
 - `back-to-login` - Link to return after success
+
+## VerifyMagicLink Page
+
+### Convex Integration
+- Uses `useMutation(api.auth.verifyMagicLink)` for token verification
+- Auto-verifies on page load when token is present
+- Sets user in AuthContext via `setUser()` on success
+- Redirects to dashboard after 2 seconds on success
+
+### Test IDs
+- `verify-magic-link-loading` - Initial loading state
+- `verify-magic-link-verifying` - Verifying token state (with spinner)
+- `verify-magic-link-error` - Error state for invalid/missing/expired token
+- `verify-magic-link-success` - Success state with redirect message
+
+## Routing
+
+### React Router Setup
+- App uses `react-router-dom` with `BrowserRouter`
+- Routes defined in `src/App.tsx`
+- Available routes:
+  - `/` - Dashboard
+  - `/settings` - Settings page
+  - `/reset-password` - Password reset (requires ?token= param)
+  - `/verify-magic-link` - Magic link verification (requires ?token= param)

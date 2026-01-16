@@ -1,0 +1,118 @@
+/**
+ * VerifyMagicLink Page Styles
+ */
+
+.verify-magic-link-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--color-background, #0f0f1a);
+}
+
+.verify-magic-link-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.verify-magic-link-card {
+  background-color: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+/* Loading state */
+.verify-magic-link-loading-state {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.verify-magic-link-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-top-color: var(--color-primary, #6366f1);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.verify-magic-link-loading {
+  text-align: center;
+  color: var(--color-text-secondary, #a0a0a0);
+  margin: 0;
+}
+
+/* Error state */
+.verify-magic-link-error-state {
+  text-align: center;
+  padding: 1rem;
+}
+
+.verify-magic-link-error-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-error, #ef4444);
+  margin-bottom: 1rem;
+}
+
+.verify-magic-link-error-state h2 {
+  font-size: 1.25rem;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0 0 0.75rem 0;
+}
+
+.verify-magic-link-error-state p {
+  color: var(--color-text-secondary, #a0a0a0);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.verify-magic-link-link {
+  color: var(--color-primary, #6366f1);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.verify-magic-link-link:hover {
+  text-decoration: underline;
+}
+
+/* Success state */
+.verify-magic-link-success-state {
+  text-align: center;
+  padding: 1rem;
+}
+
+.verify-magic-link-success-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-success, #10b981);
+  margin-bottom: 1rem;
+}
+
+.verify-magic-link-success-state h2 {
+  font-size: 1.25rem;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0 0 0.75rem 0;
+}
+
+.verify-magic-link-success-state p {
+  color: var(--color-text-secondary, #a0a0a0);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .verify-magic-link-card {
+    padding: 1.5rem;
+  }
+}

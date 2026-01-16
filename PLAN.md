@@ -210,26 +210,33 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 3.2: Create VerifyMagicLink Page
 
-- [ ] Create `src/pages/VerifyMagicLink/VerifyMagicLink.tsx`
-- [ ] Create `src/pages/VerifyMagicLink/VerifyMagicLink.css`
-- [ ] Extract token from URL params
-- [ ] Call `useMutation(api.auth.verifyMagicLink)`
-- [ ] On success, set user in AuthContext via `setUser()`
-- [ ] Redirect to dashboard on success
-- [ ] Show error state for invalid/expired tokens
-- [ ] Create unit test file: `src/pages/VerifyMagicLink/VerifyMagicLink.test.tsx`
-- [ ] Write unit test: valid token logs user in
-- [ ] Write unit test: invalid token shows error
-- [ ] Write unit test: expired token shows error
-- [ ] Add E2E test: navigate with valid token, redirects to dashboard
-- [ ] All tests pass
+- [x] Create `src/pages/VerifyMagicLink/VerifyMagicLink.tsx`
+- [x] Create `src/pages/VerifyMagicLink/VerifyMagicLink.css`
+- [x] Extract token from URL params
+- [x] Call `useMutation(api.auth.verifyMagicLink)`
+- [x] On success, set user in AuthContext via `setUser()`
+- [x] Redirect to dashboard on success
+- [x] Show error state for invalid/expired tokens
+- [x] Create unit test file: `src/pages/VerifyMagicLink/VerifyMagicLink.test.tsx`
+- [x] Write unit test: valid token logs user in
+- [x] Write unit test: invalid token shows error
+- [x] Write unit test: expired token shows error
+- [x] Add E2E test: navigate with valid token, redirects to dashboard
+- [x] All tests pass
 
-**Files to Create**:
+**Files Created**:
 - `src/pages/VerifyMagicLink/VerifyMagicLink.tsx`
 - `src/pages/VerifyMagicLink/VerifyMagicLink.css`
+- `src/pages/VerifyMagicLink/index.ts`
 - `src/pages/VerifyMagicLink/VerifyMagicLink.test.tsx`
+- `e2e/verify-magic-link.spec.ts`
+
+**Files Modified**:
+- `src/App.tsx` - Added react-router-dom routing for all pages
 
 **Dependencies**: Task 3.1
+
+**Status**: COMPLETED - VerifyMagicLink page created with full Convex integration, unit tests (8 tests), and E2E tests (7 tests)
 
 ---
 
