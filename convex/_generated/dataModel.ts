@@ -53,6 +53,45 @@ export interface UsersDocument {
 }
 
 /**
+ * Auth Credentials table document type.
+ */
+export interface AuthCredentialsDocument {
+  _id: GenericId<"authCredentials">;
+  _creationTime: number;
+  userId: GenericId<"users">;
+  passwordHash: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * Magic Link Tokens table document type.
+ */
+export interface MagicLinkTokensDocument {
+  _id: GenericId<"magicLinkTokens">;
+  _creationTime: number;
+  email: string;
+  token: string;
+  createdAt: number;
+  expiresAt: number;
+  isUsed: boolean;
+}
+
+/**
+ * Password Reset Tokens table document type.
+ */
+export interface PasswordResetTokensDocument {
+  _id: GenericId<"passwordResetTokens">;
+  _creationTime: number;
+  userId: GenericId<"users">;
+  email: string;
+  token: string;
+  createdAt: number;
+  expiresAt: number;
+  isUsed: boolean;
+}
+
+/**
  * Server Status Records table document type.
  */
 export interface ServerStatusRecordsDocument {
@@ -109,6 +148,9 @@ export interface AlertSubscriptionsDocument {
  */
 export type GamesTableInfo = GenericTableInfo;
 export type UsersTableInfo = GenericTableInfo;
+export type AuthCredentialsTableInfo = GenericTableInfo;
+export type MagicLinkTokensTableInfo = GenericTableInfo;
+export type PasswordResetTokensTableInfo = GenericTableInfo;
 export type ServerStatusRecordsTableInfo = GenericTableInfo;
 export type StatusHistoryTableInfo = GenericTableInfo;
 export type FavoritesTableInfo = GenericTableInfo;
@@ -125,6 +167,9 @@ export type DataModel = GenericDataModel;
 export type TableNames =
   | "games"
   | "users"
+  | "authCredentials"
+  | "magicLinkTokens"
+  | "passwordResetTokens"
   | "serverStatusRecords"
   | "statusHistory"
   | "favorites"
@@ -141,6 +186,9 @@ export type Id<TableName extends TableNames> = GenericId<TableName>;
 export type Doc<TableName extends TableNames> =
   TableName extends "games" ? GamesDocument :
   TableName extends "users" ? UsersDocument :
+  TableName extends "authCredentials" ? AuthCredentialsDocument :
+  TableName extends "magicLinkTokens" ? MagicLinkTokensDocument :
+  TableName extends "passwordResetTokens" ? PasswordResetTokensDocument :
   TableName extends "serverStatusRecords" ? ServerStatusRecordsDocument :
   TableName extends "statusHistory" ? StatusHistoryDocument :
   TableName extends "favorites" ? FavoritesDocument :

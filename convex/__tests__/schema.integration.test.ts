@@ -19,7 +19,7 @@ import schema, {
  */
 function getTableNames(): string[] {
   return Object.keys(
-    (schema as { tables: Record<string, unknown> }).tables
+    (schema as unknown as { tables: Record<string, unknown> }).tables
   );
 }
 
@@ -28,7 +28,7 @@ function getTableNames(): string[] {
  */
 function getTableFields(tableName: string): Record<string, unknown> | null {
   const tableDefinition = (
-    schema as {
+    schema as unknown as {
       tables: Record<string, { validator: { fields: Record<string, unknown> } }>;
     }
   ).tables[tableName];
@@ -45,7 +45,7 @@ function getTableIndexes(
   tableName: string
 ): Array<{ indexDescriptor: string; fields: string[] }> | null {
   const tableDefinition = (
-    schema as {
+    schema as unknown as {
       tables: Record<
         string,
         { indexes: Array<{ indexDescriptor: string; fields: string[] }> }
@@ -68,16 +68,23 @@ function isIdReferenceToTable(validator: unknown, tableName: string): boolean {
 
 describe("Schema Integration", () => {
   describe("Complete Schema Export", () => {
-    it("should export schema with all 6 required tables", () => {
+    it("should export schema with all 9 required tables", () => {
       const tableNames = getTableNames();
 
+      // Core tables from spec 001
       expect(tableNames).toContain("games");
       expect(tableNames).toContain("serverStatusRecords");
       expect(tableNames).toContain("statusHistory");
       expect(tableNames).toContain("users");
       expect(tableNames).toContain("favorites");
       expect(tableNames).toContain("alertSubscriptions");
-      expect(tableNames.length).toBe(6);
+
+      // Auth tables from spec 004
+      expect(tableNames).toContain("authCredentials");
+      expect(tableNames).toContain("magicLinkTokens");
+      expect(tableNames).toContain("passwordResetTokens");
+
+      expect(tableNames.length).toBe(9);
     });
 
     it("should export all three enum validators", () => {
@@ -87,9 +94,9 @@ describe("Schema Integration", () => {
       expect(platformValidator).toBeDefined();
 
       // Verify validators have correct structure
-      expect((statusValidator as { kind: string }).kind).toBe("union");
-      expect((regionValidator as { kind: string }).kind).toBe("union");
-      expect((platformValidator as { kind: string }).kind).toBe("union");
+      expect((statusValidator as unknown as { kind: string }).kind).toBe("union");
+      expect((regionValidator as unknown as { kind: string }).kind).toBe("union");
+      expect((platformValidator as unknown as { kind: string }).kind).toBe("union");
     });
 
     it("should export all enum TypeScript types", () => {
@@ -166,12 +173,41 @@ describe("Schema Integration", () => {
     });
   });
 
+  describe("Auth Tables Integration", () => {
+    it("should validate authCredentials table references users table", () => {
+      const fields = getTableFields("authCredentials");
+
+      expect(fields).not.toBeNull();
+      expect(isIdReferenceToTable(fields!.userId, "users")).toBe(true);
+      expect(fields).toHaveProperty("passwordHash");
+    });
+
+    it("should validate passwordResetTokens table references users table", () => {
+      const fields = getTableFields("passwordResetTokens");
+
+      expect(fields).not.toBeNull();
+      expect(isIdReferenceToTable(fields!.userId, "users")).toBe(true);
+      expect(fields).toHaveProperty("token");
+      expect(fields).toHaveProperty("expiresAt");
+    });
+
+    it("should validate magicLinkTokens table has required fields", () => {
+      const fields = getTableFields("magicLinkTokens");
+
+      expect(fields).not.toBeNull();
+      expect(fields).toHaveProperty("email");
+      expect(fields).toHaveProperty("token");
+      expect(fields).toHaveProperty("expiresAt");
+      expect(fields).toHaveProperty("isUsed");
+    });
+  });
+
   describe("Schema Compilation Validation", () => {
     it("should have schema as default export", () => {
       // Verify schema is a valid Convex schema object
       expect(schema).toBeDefined();
-      expect((schema as { tables: unknown }).tables).toBeDefined();
-      expect(typeof (schema as { tables: unknown }).tables).toBe("object");
+      expect((schema as unknown as { tables: unknown }).tables).toBeDefined();
+      expect(typeof (schema as unknown as { tables: unknown }).tables).toBe("object");
     });
   });
 });

@@ -9,8 +9,9 @@
 
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { statusValidator, regionValidator, platformValidator } from "./schema";
-import type { Status, Region, Platform } from "./schema";
+import { statusValidator, regionValidator } from "./schema";
+import type { Status, Region } from "./schema";
+import type { Id } from "./_generated/dataModel";
 
 /**
  * Upserts a server status record for a game and region.
@@ -43,37 +44,45 @@ export const upsertServerStatus = internalMutation({
     }
 
     // Find existing status record for this game+region
-    const existingRecord = await ctx.db
+    // Query by gameId first, then filter by region
+    const existingRecords = await ctx.db
       .query("serverStatusRecords")
-      .withIndex("by_gameId_region", (q) =>
-        q.eq("gameId", game._id).eq("region", region)
-      )
-      .first();
+      .withIndex("by_gameId", (q) => q.eq("gameId", game._id))
+      .collect();
+
+    const existingRecord = existingRecords.find((r) => r.region === region);
 
     if (existingRecord) {
       // Update existing record
       const statusChanged = existingRecord.status !== status;
+      const recordId = existingRecord._id as Id<"serverStatusRecords">;
 
-      await ctx.db.patch(existingRecord._id, {
+      await ctx.db.patch(recordId, {
         status,
         lastCheckedAt: now,
         statusChangedAt: statusChanged ? now : existingRecord.statusChangedAt,
-        statusMessage,
+        statusMessage: statusMessage !== undefined ? statusMessage : existingRecord.statusMessage,
         updatedAt: now,
       });
 
       return existingRecord._id;
     } else {
-      // Create new record
-      const newRecordId = await ctx.db.insert("serverStatusRecords", {
+      // Create new record - only include statusMessage if defined
+      const baseRecord = {
         gameId: game._id,
         status,
         region,
         lastCheckedAt: now,
         statusChangedAt: now,
-        statusMessage,
         updatedAt: now,
-      });
+      };
+
+      const newRecordId = await ctx.db.insert(
+        "serverStatusRecords",
+        statusMessage !== undefined
+          ? { ...baseRecord, statusMessage }
+          : baseRecord
+      );
 
       return newRecordId;
     }
@@ -117,35 +126,43 @@ export const batchUpsertServerStatus = internalMutation({
         }
 
         // Find existing status record for this game+region
-        const existingRecord = await ctx.db
+        // Query by gameId first, then filter by region
+        const existingRecords = await ctx.db
           .query("serverStatusRecords")
-          .withIndex("by_gameId_region", (q) =>
-            q.eq("gameId", game._id).eq("region", record.region)
-          )
-          .first();
+          .withIndex("by_gameId", (q) => q.eq("gameId", game._id))
+          .collect();
+
+        const existingRecord = existingRecords.find((r) => r.region === record.region);
 
         if (existingRecord) {
           // Update existing record
           const statusChanged = existingRecord.status !== record.status;
+          const recordId = existingRecord._id as Id<"serverStatusRecords">;
 
-          await ctx.db.patch(existingRecord._id, {
+          await ctx.db.patch(recordId, {
             status: record.status,
             lastCheckedAt: now,
             statusChangedAt: statusChanged ? now : existingRecord.statusChangedAt,
-            statusMessage: record.statusMessage,
+            statusMessage: record.statusMessage !== undefined ? record.statusMessage : existingRecord.statusMessage,
             updatedAt: now,
           });
         } else {
-          // Create new record
-          await ctx.db.insert("serverStatusRecords", {
+          // Create new record - only include statusMessage if defined
+          const baseRecord = {
             gameId: game._id,
             status: record.status,
             region: record.region,
             lastCheckedAt: now,
             statusChangedAt: now,
-            statusMessage: record.statusMessage,
             updatedAt: now,
-          });
+          };
+
+          await ctx.db.insert(
+            "serverStatusRecords",
+            record.statusMessage !== undefined
+              ? { ...baseRecord, statusMessage: record.statusMessage }
+              : baseRecord
+          );
         }
 
         results.push({ gameSlug: record.gameSlug, success: true });

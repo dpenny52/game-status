@@ -13,6 +13,9 @@
  * - `users` - User authentication and profile data
  * - `favorites` - Junction table linking users to favorite games
  * - `alertSubscriptions` - Email notification preferences
+ * - `authCredentials` - Password hashes for email/password auth
+ * - `magicLinkTokens` - Tokens for passwordless authentication
+ * - `passwordResetTokens` - Tokens for password reset flow
  *
  * ## Real-Time Considerations
  * This schema is optimized for Convex reactive queries:
@@ -207,14 +210,96 @@ export default defineSchema({
     displayName: v.string(),
     /** Whether the user's email has been verified */
     isEmailVerified: v.boolean(),
-    /** OAuth provider name (e.g., "google", "github") - optional for future extensibility */
+    /** OAuth provider name (e.g., "discord", "twitch") - optional */
     providerType: v.optional(v.string()),
-    /** ID from OAuth provider - optional for future extensibility */
+    /** ID from OAuth provider - optional */
     providerId: v.optional(v.string()),
     /** Unix timestamp for last modification (auditing) */
     updatedAt: v.number(),
   })
     .index("by_email", ["email"]),
+
+  /**
+   * Auth Credentials Table
+   *
+   * Stores password hashes for users who sign up with email/password.
+   * Separated from users table to allow for multiple auth methods per user.
+   *
+   * @remarks
+   * - Password hashes should use bcrypt or argon2 in production
+   * - One record per user with email/password authentication
+   *
+   * @index by_userId - For credential lookups during login
+   */
+  authCredentials: defineTable({
+    /** Foreign key to users table */
+    userId: v.id("users"),
+    /** Hashed password (use bcrypt/argon2 in production) */
+    passwordHash: v.string(),
+    /** Unix timestamp for creation */
+    createdAt: v.number(),
+    /** Unix timestamp for last modification */
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"]),
+
+  /**
+   * Magic Link Tokens Table
+   *
+   * Stores tokens for passwordless authentication via email.
+   * Tokens are single-use and expire after 15 minutes.
+   *
+   * @remarks
+   * - Tokens should be securely generated (32+ bytes of randomness)
+   * - Clean up expired tokens periodically
+   *
+   * @index by_token - For token validation during authentication
+   * @index by_email - For finding pending tokens for an email
+   */
+  magicLinkTokens: defineTable({
+    /** Email address the token was sent to */
+    email: v.string(),
+    /** Secure random token */
+    token: v.string(),
+    /** Unix timestamp for creation */
+    createdAt: v.number(),
+    /** Unix timestamp for expiration */
+    expiresAt: v.number(),
+    /** Whether the token has been used */
+    isUsed: v.boolean(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"]),
+
+  /**
+   * Password Reset Tokens Table
+   *
+   * Stores tokens for password reset flow.
+   * Tokens are single-use and expire after 1 hour.
+   *
+   * @remarks
+   * - Tokens should be securely generated (32+ bytes of randomness)
+   * - Clean up expired tokens periodically
+   *
+   * @index by_token - For token validation during password reset
+   * @index by_userId - For finding pending reset tokens for a user
+   */
+  passwordResetTokens: defineTable({
+    /** Foreign key to users table */
+    userId: v.id("users"),
+    /** Email address for the user */
+    email: v.string(),
+    /** Secure random token */
+    token: v.string(),
+    /** Unix timestamp for creation */
+    createdAt: v.number(),
+    /** Unix timestamp for expiration */
+    expiresAt: v.number(),
+    /** Whether the token has been used */
+    isUsed: v.boolean(),
+  })
+    .index("by_token", ["token"])
+    .index("by_userId", ["userId"]),
 
   /**
    * Server Status Records Table

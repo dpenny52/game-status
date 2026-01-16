@@ -50,7 +50,7 @@ function isValidForUnionValidator(
  * Helper function to get table fields from schema.
  */
 function getTableFields(tableName: string): Record<string, unknown> | null {
-  const tableDefinition = (schema as { tables: Record<string, { validator: { fields: Record<string, unknown> } }> }).tables[tableName];
+  const tableDefinition = (schema as unknown as { tables: Record<string, { validator: { fields: Record<string, unknown> } }> }).tables[tableName];
   if (!tableDefinition?.validator?.fields) {
     return null;
   }
@@ -61,7 +61,7 @@ function getTableFields(tableName: string): Record<string, unknown> | null {
  * Helper function to get table indexes from schema.
  */
 function getTableIndexes(tableName: string): Array<{ indexDescriptor: string; fields: string[] }> | null {
-  const tableDefinition = (schema as { tables: Record<string, { indexes: Array<{ indexDescriptor: string; fields: string[] }> }> }).tables[tableName];
+  const tableDefinition = (schema as unknown as { tables: Record<string, { indexes: Array<{ indexDescriptor: string; fields: string[] }> }> }).tables[tableName];
   if (!tableDefinition?.indexes) {
     return null;
   }

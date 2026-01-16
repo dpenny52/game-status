@@ -89,7 +89,7 @@ export function useRelativeTime(timestamp: number | null | undefined): string {
           }, newInterval);
 
           // Store new interval ID for cleanup
-          (window as unknown as { __timeIntervalId?: number }).__timeIntervalId =
+          (window as unknown as { __timeIntervalId?: ReturnType<typeof setInterval> }).__timeIntervalId =
             newIntervalId;
         }
       }
@@ -98,7 +98,7 @@ export function useRelativeTime(timestamp: number | null | undefined): string {
     // Cleanup on unmount or when timestamp changes
     return () => {
       clearInterval(intervalId);
-      const storedId = (window as unknown as { __timeIntervalId?: number })
+      const storedId = (window as unknown as { __timeIntervalId?: ReturnType<typeof setInterval> })
         .__timeIntervalId;
       if (storedId) {
         clearInterval(storedId);

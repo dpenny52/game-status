@@ -1,0 +1,298 @@
+/**
+ * Settings Page Styles
+ */
+
+.settings-page {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: var(--color-background, #0f0f1a);
+}
+
+.settings-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+}
+
+.settings-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0;
+}
+
+/* Messages */
+.settings-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--color-success, #10b981);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-success, #10b981);
+  font-size: 0.875rem;
+}
+
+.settings-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-error, #ef4444);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-error, #ef4444);
+  font-size: 0.875rem;
+}
+
+/* Content */
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section */
+.settings-section {
+  background-color: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.settings-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+}
+
+/* Field */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-field:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #a0a0a0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-value {
+  font-size: 1rem;
+  color: var(--color-text-primary, #ffffff);
+}
+
+.settings-date {
+  color: var(--color-text-secondary, #a0a0a0);
+}
+
+.settings-value-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Badges */
+.settings-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.settings-badge-verified {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success, #10b981);
+}
+
+.settings-badge-unverified {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning, #f59e0b);
+}
+
+/* Edit button */
+.settings-edit-button {
+  background: none;
+  border: none;
+  color: var(--color-primary, #6366f1);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-edit-button:hover {
+  text-decoration: underline;
+}
+
+/* Edit row */
+.settings-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  background-color: var(--color-surface-elevated, #2a2a40);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  color: var(--color-text-primary, #ffffff);
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.settings-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.settings-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-button-primary {
+  background-color: var(--color-primary, #6366f1);
+  color: white;
+}
+
+.settings-button-primary:not(:disabled):hover {
+  background-color: var(--color-primary-hover, #5457e5);
+}
+
+.settings-button-secondary {
+  background-color: var(--color-surface-elevated, #2a2a40);
+  color: var(--color-text-primary, #ffffff);
+}
+
+.settings-button-secondary:not(:disabled):hover {
+  background-color: var(--color-hover, rgba(255, 255, 255, 0.1));
+}
+
+.settings-button-danger {
+  background-color: var(--color-error, #ef4444);
+  color: white;
+}
+
+.settings-button-danger:not(:disabled):hover {
+  background-color: #dc2626;
+}
+
+/* Provider */
+.settings-provider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.provider-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.provider-discord {
+  background-color: #5865f2;
+}
+
+.provider-twitch {
+  background-color: #9146ff;
+}
+
+/* Logout confirm */
+.settings-logout-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settings-logout-confirm p {
+  margin: 0;
+  color: var(--color-text-secondary, #a0a0a0);
+  font-size: 0.875rem;
+}
+
+.settings-logout-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Login prompt */
+.settings-login-prompt {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+}
+
+.settings-login-prompt h2 {
+  font-size: 1.25rem;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0 0 0.75rem 0;
+}
+
+.settings-login-prompt p {
+  color: var(--color-text-secondary, #a0a0a0);
+  margin: 0 0 1.5rem 0;
+}
+
+.settings-login-button {
+  background-color: var(--color-primary, #6366f1);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.settings-login-button:hover {
+  background-color: var(--color-primary-hover, #5457e5);
+}
+
+/* Loading */
+.settings-loading-text {
+  text-align: center;
+  color: var(--color-text-secondary, #a0a0a0);
+  padding: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .settings-page {
+    padding: 1rem;
+  }
+
+  .settings-section {
+    padding: 1.25rem;
+  }
+}
