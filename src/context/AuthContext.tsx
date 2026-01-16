@@ -3,6 +3,7 @@
  *
  * Provides global authentication state management for the application.
  * Handles user login, logout, and session persistence.
+ * Connects to Convex backend for authentication operations.
  *
  * @module AuthContext
  */
@@ -13,6 +14,9 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 /**
  * User type representing an authenticated user.
@@ -97,6 +101,11 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const [modalState, setModalState] = useState<"login" | "signup" | null>(null);
 
+  // Convex mutations for authentication
+  const loginMutation = useMutation(api.auth.login);
+  const signUpMutation = useMutation(api.auth.signUp);
+  const updateDisplayNameMutation = useMutation(api.auth.updateDisplayName);
+
   // Load persisted auth state on mount
   useEffect(() => {
     const loadPersistedAuth = () => {
@@ -138,46 +147,61 @@ export function AuthProvider({
     setUserState(newUser);
   }, []);
 
-  // Login with email/password
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // In a real app, this would call the Convex mutation
-      // For now, we simulate the login
-      const mockUser: User = {
-        _id: "user_" + Date.now(),
-        email: email.toLowerCase().trim(),
-        displayName: email.split("@")[0],
-        isEmailVerified: false,
-      };
-      setUserState(mockUser);
-      setModalState(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Signup with email/password/displayName
-  const signup = useCallback(
-    async (email: string, password: string, displayName: string) => {
+  // Login with email/password using Convex mutation
+  const login = useCallback(
+    async (email: string, password: string) => {
       setIsLoading(true);
       try {
-        // In a real app, this would call the Convex mutation
-        // For now, we simulate the signup
-        const mockUser: User = {
-          _id: "user_" + Date.now(),
-          email: email.toLowerCase().trim(),
-          displayName: displayName.trim(),
-          isEmailVerified: false,
-          _creationTime: Date.now(),
+        const result = await loginMutation({ email, password });
+        const userData: User = {
+          _id: result.user._id,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          isEmailVerified: result.user.isEmailVerified,
+          providerType: result.user.providerType,
+          providerId: result.user.providerId,
         };
-        setUserState(mockUser);
+        setUserState(userData);
         setModalState(null);
+      } catch (error) {
+        // Re-throw the error so the calling component can handle it
+        throw error;
       } finally {
         setIsLoading(false);
       }
     },
-    []
+    [loginMutation]
+  );
+
+  // Signup with email/password/displayName using Convex mutation
+  const signup = useCallback(
+    async (email: string, password: string, displayName: string) => {
+      setIsLoading(true);
+      try {
+        // Create the account using Convex mutation
+        await signUpMutation({ email, password, displayName });
+
+        // After successful signup, login to get the full user data
+        const result = await loginMutation({ email, password });
+        const userData: User = {
+          _id: result.user._id,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          isEmailVerified: result.user.isEmailVerified,
+          providerType: result.user.providerType,
+          providerId: result.user.providerId,
+          _creationTime: Date.now(),
+        };
+        setUserState(userData);
+        setModalState(null);
+      } catch (error) {
+        // Re-throw the error so the calling component can handle it
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [signUpMutation, loginMutation]
   );
 
   // Logout
@@ -192,13 +216,35 @@ export function AuthProvider({
     }
   }, []);
 
-  // Update display name
-  const updateDisplayName = useCallback(async (displayName: string) => {
-    setUserState((prev) => {
-      if (!prev) return null;
-      return { ...prev, displayName: displayName.trim() };
-    });
-  }, []);
+  // Update display name using Convex mutation
+  const updateDisplayName = useCallback(
+    async (displayName: string) => {
+      if (!user) {
+        throw new Error("Must be logged in to update display name");
+      }
+
+      try {
+        const updatedUser = await updateDisplayNameMutation({
+          userId: user._id as Id<"users">,
+          displayName,
+        });
+
+        if (updatedUser) {
+          setUserState((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              displayName: updatedUser.displayName,
+            };
+          });
+        }
+      } catch (error) {
+        // Re-throw the error so the calling component can handle it
+        throw error;
+      }
+    },
+    [user, updateDisplayNameMutation]
+  );
 
   // Modal controls
   const openLoginModal = useCallback(() => setModalState("login"), []);

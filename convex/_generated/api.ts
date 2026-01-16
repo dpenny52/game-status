@@ -326,6 +326,20 @@ export const api = {
         };
       }
     >,
+    updateDisplayName: "auth:updateDisplayName" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { userId: Id<"users">; displayName: string },
+      {
+        _id: string;
+        email: string;
+        displayName: string;
+        isEmailVerified: boolean;
+        providerType?: string;
+        providerId?: string;
+        updatedAt: number;
+      } | null
+    >,
   },
   alertSubscriptions: {
     getUserSubscriptions: "alertSubscriptions:getUserSubscriptions" as unknown as FunctionReference<

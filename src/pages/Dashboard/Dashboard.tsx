@@ -58,33 +58,79 @@ function groupByPlatform(
 }
 
 /**
- * Dashboard displays all game server statuses organized by platform.
- *
- * Features:
- * - Real-time updates via Convex subscriptions (no manual refresh needed)
- * - Connection health indicator showing Convex connection status
- * - Auto-updating relative timestamps
- * - Status change animations on individual game cards
- * - Stale data indicators when data exceeds 10-minute threshold
- *
- * For authenticated users:
- * - Uses getAllGamesWithStatusAndFavorites query for favorites sorting
- * - Favorites appear first (alphabetically) within each platform section
- * - Star icon visible on each game card for toggling favorites
- *
- * For anonymous users:
- * - Uses getAllGamesWithStatus query (no favorites)
- * - Standard sortOrder sorting
- * - No star icons displayed
- *
- * @example
- * ```tsx
- * <ConvexProvider client={convex}>
- *   <Dashboard />
- * </ConvexProvider>
- * ```
+ * Demo data for when Convex is not available.
  */
-export function Dashboard(): JSX.Element {
+const DEMO_GAMES: GameWithStatus[] = [
+  {
+    game: {
+      _id: "demo_1",
+      displayName: "World of Warcraft",
+      platform: "blizzard",
+      slug: "wow",
+      iconUrl: "",
+      sortOrder: 1,
+      isActive: true,
+    },
+    statusRecords: [
+      {
+        _id: "status_1",
+        region: "NA",
+        status: "online",
+        lastCheckedAt: Date.now(),
+        statusChangedAt: Date.now(),
+      },
+    ],
+    isFavorited: false,
+  },
+  {
+    game: {
+      _id: "demo_2",
+      displayName: "League of Legends",
+      platform: "riot",
+      slug: "lol",
+      iconUrl: "",
+      sortOrder: 1,
+      isActive: true,
+    },
+    statusRecords: [
+      {
+        _id: "status_2",
+        region: "NA",
+        status: "online",
+        lastCheckedAt: Date.now(),
+        statusChangedAt: Date.now(),
+      },
+    ],
+    isFavorited: false,
+  },
+  {
+    game: {
+      _id: "demo_3",
+      displayName: "Counter-Strike 2",
+      platform: "steam",
+      slug: "cs2",
+      iconUrl: "",
+      sortOrder: 1,
+      isActive: true,
+    },
+    statusRecords: [
+      {
+        _id: "status_3",
+        region: "NA",
+        status: "degraded",
+        lastCheckedAt: Date.now(),
+        statusChangedAt: Date.now(),
+      },
+    ],
+    isFavorited: false,
+  },
+];
+
+/**
+ * Dashboard that uses Convex for data fetching.
+ * Must be wrapped in a ConvexProvider.
+ */
+function DashboardWithConvex(): JSX.Element {
   // Get auth state to determine which query to use
   const { isAuthenticated } = useAuth();
 
@@ -100,10 +146,24 @@ export function Dashboard(): JSX.Element {
     ? gamesWithStatusAndFavorites
     : gamesWithStatusBasic;
 
+  return <DashboardContent gamesWithStatus={gamesWithStatus as unknown as GameWithStatus[] | undefined} />;
+}
+
+/**
+ * Dashboard that uses demo data (no Convex required).
+ */
+function DashboardDemo(): JSX.Element {
+  return <DashboardContent gamesWithStatus={DEMO_GAMES} />;
+}
+
+/**
+ * The actual dashboard content, receives game data as props.
+ */
+function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus[] | undefined }): JSX.Element {
   // Group games by platform
   const gamesByPlatform = useMemo(() => {
     if (!gamesWithStatus) return null;
-    return groupByPlatform(gamesWithStatus as unknown as GameWithStatus[]);
+    return groupByPlatform(gamesWithStatus);
   }, [gamesWithStatus]);
 
   // Get the most recent lastCheckedAt timestamp for footer
@@ -240,6 +300,43 @@ export function Dashboard(): JSX.Element {
       </footer>
     </div>
   );
+}
+
+/**
+ * Dashboard displays all game server statuses organized by platform.
+ *
+ * Features:
+ * - Real-time updates via Convex subscriptions (no manual refresh needed)
+ * - Connection health indicator showing Convex connection status
+ * - Auto-updating relative timestamps
+ * - Status change animations on individual game cards
+ * - Stale data indicators when data exceeds 10-minute threshold
+ *
+ * For authenticated users:
+ * - Uses getAllGamesWithStatusAndFavorites query for favorites sorting
+ * - Favorites appear first (alphabetically) within each platform section
+ * - Star icon visible on each game card for toggling favorites
+ *
+ * For anonymous users:
+ * - Uses getAllGamesWithStatus query (no favorites)
+ * - Standard sortOrder sorting
+ * - No star icons displayed
+ *
+ * In demo mode (no Convex):
+ * - Displays sample game data
+ *
+ * @example
+ * ```tsx
+ * <ConvexProvider client={convex}>
+ *   <Dashboard />
+ * </ConvexProvider>
+ * ```
+ */
+export function Dashboard({ useConvex = true }: { useConvex?: boolean }): JSX.Element {
+  if (useConvex) {
+    return <DashboardWithConvex />;
+  }
+  return <DashboardDemo />;
 }
 
 export default Dashboard;
