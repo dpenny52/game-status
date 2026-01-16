@@ -160,6 +160,8 @@ function DashboardDemo(): JSX.Element {
  * The actual dashboard content, receives game data as props.
  */
 function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus[] | undefined }): JSX.Element {
+  const { isAuthenticated, openLoginModal } = useAuth();
+
   // Group games by platform
   const gamesByPlatform = useMemo(() => {
     if (!gamesWithStatus) return null;
@@ -196,10 +198,21 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
               Real-time game server status monitoring
             </p>
           </div>
-          <ConnectionHealthIndicator
-            className="dashboard-connection-indicator"
-            data-testid="connection-health-indicator"
-          />
+          <div className="dashboard-header-actions">
+            {!isAuthenticated && (
+              <button
+                className="dashboard-login-button"
+                onClick={openLoginModal}
+                data-testid="dashboard-login-button"
+              >
+                Sign In
+              </button>
+            )}
+            <ConnectionHealthIndicator
+              className="dashboard-connection-indicator"
+              data-testid="connection-health-indicator"
+            />
+          </div>
         </header>
         <main className="dashboard-main">
           <div className="dashboard-loading" role="status" aria-label="Loading">
@@ -231,10 +244,21 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
               Real-time game server status monitoring
             </p>
           </div>
-          <ConnectionHealthIndicator
-            className="dashboard-connection-indicator"
-            data-testid="connection-health-indicator"
-          />
+          <div className="dashboard-header-actions">
+            {!isAuthenticated && (
+              <button
+                className="dashboard-login-button"
+                onClick={openLoginModal}
+                data-testid="dashboard-login-button"
+              >
+                Sign In
+              </button>
+            )}
+            <ConnectionHealthIndicator
+              className="dashboard-connection-indicator"
+              data-testid="connection-health-indicator"
+            />
+          </div>
         </header>
         <main className="dashboard-main">
           <EmptyState
@@ -266,10 +290,21 @@ function DashboardContent({ gamesWithStatus }: { gamesWithStatus: GameWithStatus
             Real-time game server status monitoring
           </p>
         </div>
-        <ConnectionHealthIndicator
-          className="dashboard-connection-indicator"
-          data-testid="connection-health-indicator"
-        />
+        <div className="dashboard-header-actions">
+          {!isAuthenticated && (
+            <button
+              className="dashboard-login-button"
+              onClick={openLoginModal}
+              data-testid="dashboard-login-button"
+            >
+              Sign In
+            </button>
+          )}
+          <ConnectionHealthIndicator
+            className="dashboard-connection-indicator"
+            data-testid="connection-health-indicator"
+          />
+        </div>
       </header>
 
       <main className="dashboard-main">

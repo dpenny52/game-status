@@ -49,11 +49,40 @@
   color: #6b7280;
 }
 
+/* Header actions container */
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Login button */
+.dashboard-login-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dashboard-login-button:hover {
+  background-color: #2563eb;
+}
+
+.dashboard-login-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Connection health indicator - positioned in header */
 .dashboard-connection-indicator {
   /* Positioned at the right edge of the header */
   flex-shrink: 0;
-  margin-left: 0.5rem;
 }
 
 /* Main content - Mobile first (phone) */
@@ -125,8 +154,13 @@
     font-size: 1rem;
   }
 
-  .dashboard-connection-indicator {
-    margin-left: 1rem;
+  .dashboard-header-actions {
+    gap: 1rem;
+  }
+
+  .dashboard-login-button {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9375rem;
   }
 
   .dashboard-main {

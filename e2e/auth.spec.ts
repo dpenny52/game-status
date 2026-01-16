@@ -414,5 +414,128 @@ test.describe("Authentication Flows", () => {
         fullPage: true,
       });
     });
+
+    test("shows Sign In button on dashboard for unauthenticated users", async ({ page }) => {
+      // Navigate to dashboard
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+
+      // Verify Sign In button is visible
+      const loginButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(loginButton).toBeVisible();
+      await expect(loginButton).toHaveText("Sign In");
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-dashboard-signin-button.png",
+        fullPage: true,
+      });
+    });
+
+    test("opens login modal from dashboard Sign In button", async ({ page }) => {
+      // Navigate to dashboard
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+
+      // Click the Sign In button
+      const loginButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(loginButton).toBeVisible();
+      await loginButton.click();
+
+      // Verify login modal appears with email and password fields
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="login-password-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="login-submit-button"]')).toBeVisible();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-dashboard-login-modal.png",
+        fullPage: false,
+      });
+    });
+
+    test("can navigate to signup from dashboard login modal", async ({ page }) => {
+      // Navigate to dashboard
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads and click Sign In
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="dashboard-login-button"]').click();
+
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Click switch to signup
+      await page.locator('[data-testid="switch-to-signup"]').click();
+
+      // Verify signup modal appears
+      await expect(page.locator('[data-testid="signup-email-input"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="signup-displayname-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="signup-password-input"]')).toBeVisible();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-dashboard-signup-modal.png",
+        fullPage: false,
+      });
+    });
+
+    test("hides Sign In button for authenticated users", async ({ page }) => {
+      // Set up authenticated state via localStorage
+      await page.goto("/", { waitUntil: "networkidle" });
+      await page.evaluate(() => {
+        const mockUser = {
+          _id: "test-user-id",
+          email: "test@example.com",
+          displayName: "Test User",
+          isEmailVerified: true,
+        };
+        localStorage.setItem("gamestatus_auth", JSON.stringify({ user: mockUser }));
+      });
+
+      // Reload to apply auth state
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+
+      // Verify Sign In button is NOT visible for authenticated users
+      const loginButton = page.locator('[data-testid="dashboard-login-button"]');
+      await expect(loginButton).not.toBeVisible();
+
+      // Take screenshot
+      await page.screenshot({
+        path: "e2e/screenshots/auth-dashboard-authenticated-no-signin.png",
+        fullPage: true,
+      });
+    });
+
+    test("can close login modal with close button", async ({ page }) => {
+      // Navigate to dashboard
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      // Verify dashboard loads and click Sign In
+      await expect(page.locator(".dashboard")).toBeVisible({ timeout: 10000 });
+      await page.locator('[data-testid="dashboard-login-button"]').click();
+
+      // Wait for login modal
+      await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible({ timeout: 5000 });
+
+      // Close the modal using the close button
+      const closeButton = page.locator('[data-testid="modal-close-button"]');
+      await expect(closeButton).toBeVisible();
+      await closeButton.click();
+
+      // Verify modal is closed
+      await expect(page.locator('[data-testid="login-email-input"]')).not.toBeVisible({ timeout: 3000 });
+
+      // Verify Sign In button is still visible
+      await expect(page.locator('[data-testid="dashboard-login-button"]')).toBeVisible();
+    });
   });
 });
