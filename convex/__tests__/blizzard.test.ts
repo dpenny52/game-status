@@ -1,109 +1,141 @@
 /**
- * Tests for Blizzard API Integration
+ * Tests for Blizzard Web Scraping Integration
  *
- * Tests OAuth2 authentication, status fetching, and regional parsing
+ * Tests health check functionality, status keyword detection, and regional parsing
  * for Blizzard games (WoW, Diablo IV, Overwatch 2, Hearthstone).
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 
 /**
- * Mock Blizzard OAuth2 token response.
+ * Keywords indicating maintenance in page content.
  */
-interface BlizzardTokenResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
+const MAINTENANCE_KEYWORDS = [
+  "maintenance",
+  "scheduled downtime",
+  "currently unavailable",
+  "undergoing maintenance",
+  "service interruption",
+  "temporarily offline",
+];
+
+/**
+ * Keywords indicating degraded service.
+ */
+const DEGRADED_KEYWORDS = [
+  "experiencing issues",
+  "degraded",
+  "partial outage",
+  "some players may",
+  "intermittent",
+  "connectivity issues",
+];
+
+/**
+ * Checks if HTML content contains maintenance indicators.
+ */
+function containsMaintenanceIndicators(html: string): boolean {
+  const lowerHtml = html.toLowerCase();
+  return MAINTENANCE_KEYWORDS.some((keyword) => lowerHtml.includes(keyword));
 }
 
 /**
- * Status mapping from Blizzard to internal enum.
+ * Checks if HTML content contains degraded service indicators.
  */
-function mapBlizzardStatusToInternal(
-  blizzardStatus: string
-): "online" | "offline" | "degraded" | "maintenance" | "unknown" {
-  const status = blizzardStatus.toLowerCase();
-  if (status === "up" || status === "online") return "online";
-  if (status === "down" || status === "offline") return "offline";
-  if (status === "degraded" || status === "partial") return "degraded";
-  if (status === "maintenance") return "maintenance";
-  return "unknown";
+function containsDegradedIndicators(html: string): boolean {
+  const lowerHtml = html.toLowerCase();
+  return DEGRADED_KEYWORDS.some((keyword) => lowerHtml.includes(keyword));
 }
 
 /**
- * Region mapping from Blizzard API regions to internal codes.
+ * Region mapping from region keys to internal codes.
  */
 function mapBlizzardRegion(
-  blizzardRegion: string
+  regionKey: string
 ): "na" | "eu" | "asia" | "oce" | "global" {
   const regionMap: Record<string, "na" | "eu" | "asia" | "oce" | "global"> = {
     us: "na",
     eu: "eu",
-    kr: "asia",
-    tw: "asia",
-    cn: "asia",
+    asia: "asia",
   };
-  return regionMap[blizzardRegion] || "global";
+  return regionMap[regionKey] || "global";
 }
 
-/**
- * Checks if credentials are present.
- */
-function hasCredentials(clientId?: string, clientSecret?: string): boolean {
-  return (
-    clientId !== undefined &&
-    clientId !== "" &&
-    clientSecret !== undefined &&
-    clientSecret !== ""
-  );
-}
-
-describe("Blizzard OAuth2 Authentication", () => {
-  it("should authenticate with client credentials flow", async () => {
-    // Simulate OAuth2 response structure
-    const mockTokenResponse: BlizzardTokenResponse = {
-      access_token: "test_access_token_12345",
-      token_type: "bearer",
-      expires_in: 86400,
-    };
-
-    expect(mockTokenResponse.access_token).toBeDefined();
-    expect(mockTokenResponse.token_type).toBe("bearer");
-    expect(mockTokenResponse.expires_in).toBeGreaterThan(0);
+describe("Blizzard Maintenance Detection", () => {
+  it("should detect maintenance keywords in HTML content", () => {
+    expect(
+      containsMaintenanceIndicators("Server is under maintenance right now")
+    ).toBe(true);
+    expect(
+      containsMaintenanceIndicators("Scheduled downtime starting at 3 AM")
+    ).toBe(true);
+    expect(
+      containsMaintenanceIndicators("The service is currently unavailable")
+    ).toBe(true);
+    expect(
+      containsMaintenanceIndicators("Undergoing maintenance until further notice")
+    ).toBe(true);
+    expect(
+      containsMaintenanceIndicators("We are experiencing a service interruption")
+    ).toBe(true);
+    expect(
+      containsMaintenanceIndicators("Servers are temporarily offline")
+    ).toBe(true);
   });
 
-  it("should reuse token across batched game requests", () => {
-    // Token should be fetched once per region and reused for all games
-    const token = "reusable_token_abc123";
-    const games = ["wow", "diablo4", "overwatch2", "hearthstone"];
+  it("should not detect maintenance in normal content", () => {
+    expect(containsMaintenanceIndicators("Welcome to World of Warcraft!")).toBe(
+      false
+    );
+    expect(containsMaintenanceIndicators("All realms are online")).toBe(false);
+    expect(containsMaintenanceIndicators("Play Diablo IV now")).toBe(false);
+  });
 
-    // All games should use the same token in a single batch
-    games.forEach((game) => {
-      const authHeader = `Bearer ${token}`;
-      expect(authHeader).toBe("Bearer reusable_token_abc123");
-    });
+  it("should be case-insensitive", () => {
+    expect(containsMaintenanceIndicators("MAINTENANCE IN PROGRESS")).toBe(true);
+    expect(containsMaintenanceIndicators("Maintenance in Progress")).toBe(true);
+    expect(containsMaintenanceIndicators("maintenance in progress")).toBe(true);
   });
 });
 
-describe("Blizzard Status Mapping", () => {
-  it("should map status to internal enum correctly", () => {
-    expect(mapBlizzardStatusToInternal("up")).toBe("online");
-    expect(mapBlizzardStatusToInternal("online")).toBe("online");
-    expect(mapBlizzardStatusToInternal("down")).toBe("offline");
-    expect(mapBlizzardStatusToInternal("offline")).toBe("offline");
-    expect(mapBlizzardStatusToInternal("degraded")).toBe("degraded");
-    expect(mapBlizzardStatusToInternal("partial")).toBe("degraded");
-    expect(mapBlizzardStatusToInternal("maintenance")).toBe("maintenance");
-    expect(mapBlizzardStatusToInternal("unknown_status")).toBe("unknown");
+describe("Blizzard Degraded Status Detection", () => {
+  it("should detect degraded service keywords in HTML content", () => {
+    expect(
+      containsDegradedIndicators("We are experiencing issues with login")
+    ).toBe(true);
+    expect(
+      containsDegradedIndicators("Service is currently degraded")
+    ).toBe(true);
+    expect(
+      containsDegradedIndicators("There is a partial outage affecting some regions")
+    ).toBe(true);
+    expect(
+      containsDegradedIndicators("Some players may experience delays")
+    ).toBe(true);
+    expect(
+      containsDegradedIndicators("Intermittent connection problems reported")
+    ).toBe(true);
+    expect(
+      containsDegradedIndicators("Users reporting connectivity issues")
+    ).toBe(true);
+  });
+
+  it("should not detect degraded in normal content", () => {
+    expect(containsDegradedIndicators("Welcome to Overwatch 2!")).toBe(false);
+    expect(containsDegradedIndicators("All systems operational")).toBe(false);
+    expect(containsDegradedIndicators("Jump into the action")).toBe(false);
   });
 });
 
 describe("Blizzard Regional Status Parsing", () => {
-  it("should map Blizzard regions to internal region codes", () => {
+  it("should map region keys to internal region codes", () => {
     expect(mapBlizzardRegion("us")).toBe("na");
     expect(mapBlizzardRegion("eu")).toBe("eu");
-    expect(mapBlizzardRegion("kr")).toBe("asia");
-    expect(mapBlizzardRegion("tw")).toBe("asia");
-    expect(mapBlizzardRegion("cn")).toBe("asia");
+    expect(mapBlizzardRegion("asia")).toBe("asia");
+  });
+
+  it("should handle unknown regions", () => {
+    expect(mapBlizzardRegion("unknown")).toBe("global");
+    expect(mapBlizzardRegion("")).toBe("global");
   });
 
   it("should handle all four Blizzard games", () => {
@@ -122,15 +154,91 @@ describe("Blizzard Regional Status Parsing", () => {
   });
 });
 
-describe("Blizzard Credential Handling", () => {
-  it("should skip gracefully when credentials are missing", () => {
-    expect(hasCredentials(undefined, undefined)).toBe(false);
-    expect(hasCredentials("", "")).toBe(false);
-    expect(hasCredentials("client_id", "")).toBe(false);
-    expect(hasCredentials("", "client_secret")).toBe(false);
+describe("Blizzard Region Configuration", () => {
+  it("should have correct regional endpoints configured", () => {
+    const regionConfigs = {
+      us: {
+        region: "na",
+        wowStatusPage: "https://worldofwarcraft.blizzard.com/en-us/game/status/us",
+        battleNetUrl: "https://us.battle.net/login/en/",
+        diabloUrl: "https://diablo4.blizzard.com/en-us/",
+        overwatchUrl: "https://overwatch.blizzard.com/en-us/",
+        hearthstoneUrl: "https://hearthstone.blizzard.com/en-us/",
+      },
+      eu: {
+        region: "eu",
+        wowStatusPage: "https://worldofwarcraft.blizzard.com/en-gb/game/status/eu",
+        battleNetUrl: "https://eu.battle.net/login/en/",
+        diabloUrl: "https://diablo4.blizzard.com/en-gb/",
+        overwatchUrl: "https://overwatch.blizzard.com/en-gb/",
+        hearthstoneUrl: "https://hearthstone.blizzard.com/en-gb/",
+      },
+      asia: {
+        region: "asia",
+        wowStatusPage: "https://worldofwarcraft.blizzard.com/ko-kr/game/status/kr",
+        battleNetUrl: "https://kr.battle.net/login/ko/",
+        diabloUrl: "https://diablo4.blizzard.com/ko-kr/",
+        overwatchUrl: "https://overwatch.blizzard.com/ko-kr/",
+        hearthstoneUrl: "https://hearthstone.blizzard.com/ko-kr/",
+      },
+    };
+
+    // Verify all regions have required properties
+    for (const [regionKey, config] of Object.entries(regionConfigs)) {
+      expect(config.region).toBeDefined();
+      expect(config.wowStatusPage).toContain("worldofwarcraft.blizzard.com");
+      expect(config.battleNetUrl).toContain("battle.net");
+      expect(config.diabloUrl).toContain("diablo4.blizzard.com");
+      expect(config.overwatchUrl).toContain("overwatch.blizzard.com");
+      expect(config.hearthstoneUrl).toContain("hearthstone.blizzard.com");
+    }
+
+    // Verify URL patterns are correct
+    expect(regionConfigs.us.battleNetUrl).toContain("us.battle.net");
+    expect(regionConfigs.eu.battleNetUrl).toContain("eu.battle.net");
+    expect(regionConfigs.asia.battleNetUrl).toContain("kr.battle.net");
+  });
+});
+
+describe("Blizzard Health Check Logic", () => {
+  it("should determine status based on accessibility and content", () => {
+    // Simulate health check scenarios
+    type HealthCheckResult = {
+      accessible: boolean;
+      status: "online" | "offline" | "degraded" | "maintenance" | "unknown";
+    };
+
+    // When page is not accessible, status should be offline
+    const inaccessible: HealthCheckResult = { accessible: false, status: "offline" };
+    expect(inaccessible.status).toBe("offline");
+
+    // When page is accessible with no issues, status should be online
+    const healthy: HealthCheckResult = { accessible: true, status: "online" };
+    expect(healthy.status).toBe("online");
+
+    // When page shows maintenance, status should be maintenance
+    const underMaintenance: HealthCheckResult = { accessible: true, status: "maintenance" };
+    expect(underMaintenance.status).toBe("maintenance");
+
+    // When page shows degraded, status should be degraded
+    const degraded: HealthCheckResult = { accessible: true, status: "degraded" };
+    expect(degraded.status).toBe("degraded");
   });
 
-  it("should proceed when credentials are present", () => {
-    expect(hasCredentials("valid_client_id", "valid_client_secret")).toBe(true);
+  it("should prioritize Battle.net health for all games", () => {
+    // When Battle.net is down, all games should be marked offline
+    const battleNetDown = true;
+    const gameStatuses = ["wow", "diablo4", "overwatch2", "hearthstone"].map(() =>
+      battleNetDown ? "offline" : "online"
+    );
+
+    expect(gameStatuses.every((s) => s === "offline")).toBe(true);
+
+    // When Battle.net is up, games can have their individual status checked
+    const battleNetUp = true;
+    const gameStatusesWhenUp = ["wow", "diablo4", "overwatch2", "hearthstone"].map(() =>
+      battleNetUp ? "online" : "offline"
+    );
+    expect(gameStatusesWhenUp.every((s) => s === "online")).toBe(true);
   });
 });

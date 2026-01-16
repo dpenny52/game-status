@@ -1,75 +1,62 @@
 /**
- * Blizzard API Integration
+ * Blizzard Web Scraping Integration
  *
- * Fetches server status for Blizzard games using the Battle.net Game Data API.
+ * Fetches server status for Blizzard games using web scraping and health checks.
  * Supports World of Warcraft, Diablo IV, Overwatch 2, and Hearthstone.
  *
  * @module publishers/blizzard
  *
- * ## Authentication
- * Uses OAuth2 client credentials flow with BLIZZARD_CLIENT_ID and
- * BLIZZARD_CLIENT_SECRET environment variables.
+ * ## No Authentication Required
+ * This module uses public web endpoints and health checks instead of the
+ * Battle.net API, which has been found to be unreliable for real-time status.
+ *
+ * ## Approach
+ * Uses health check pattern similar to Steam publisher:
+ * - Check if game-specific endpoints respond
+ * - Check Battle.net launcher/login services
+ * - Parse maintenance indicators from status pages
  *
  * ## Regional Support
- * Tracks status for NA, EU, KR, TW regions where API provides data.
- *
- * ## Fallback
- * Implements HTML scraping fallback for World of Warcraft only if the
- * official API lacks real-time status.
+ * Tracks status for NA, EU, Asia regions based on regional endpoints.
  */
 
 import { internalAction } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { v } from "convex/values";
-import {
-  fetchWithTimeout,
-  fetchHtml,
-  isEnvVarSet,
-} from "../lib/fetchUtils";
-import { logApiError, logFetchSuccess, logMissingCredentials } from "../lib/logger";
+import { fetchHtml } from "../lib/fetchUtils";
+import { logApiError, logFetchSuccess } from "../lib/logger";
 import { shouldRetry } from "../lib/retry";
 import type { Status, Region } from "../schema";
-import { mapToInternalStatus } from "../statusMutations";
 
 /**
- * Blizzard OAuth2 token response structure.
+ * Regional endpoints for health checks.
  */
-interface BlizzardTokenResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-/**
- * Blizzard game realm status response structure.
- * Note: This is a simplified representation. Actual API response may vary.
- */
-interface BlizzardRealmStatus {
-  realms?: Array<{
-    name: string;
-    slug: string;
-    status: {
-      type: string;
-      name: string;
-    };
-  }>;
-}
-
-/**
- * Maps Blizzard API regions to our internal region codes.
- */
-const BLIZZARD_REGION_MAP: Record<string, Region> = {
-  us: "na",
-  eu: "eu",
-  kr: "asia",
-  tw: "asia",
-  cn: "asia",
-};
-
-/**
- * Blizzard API region endpoints.
- */
-const BLIZZARD_REGIONS = ["us", "eu", "kr", "tw"] as const;
+const REGION_CONFIGS = {
+  us: {
+    region: "na" as Region,
+    wowStatusPage: "https://worldofwarcraft.blizzard.com/en-us/game/status/us",
+    battleNetUrl: "https://us.battle.net/login/en/",
+    diabloUrl: "https://diablo4.blizzard.com/en-us/",
+    overwatchUrl: "https://overwatch.blizzard.com/en-us/",
+    hearthstoneUrl: "https://hearthstone.blizzard.com/en-us/",
+  },
+  eu: {
+    region: "eu" as Region,
+    wowStatusPage: "https://worldofwarcraft.blizzard.com/en-gb/game/status/eu",
+    battleNetUrl: "https://eu.battle.net/login/en/",
+    diabloUrl: "https://diablo4.blizzard.com/en-gb/",
+    overwatchUrl: "https://overwatch.blizzard.com/en-gb/",
+    hearthstoneUrl: "https://hearthstone.blizzard.com/en-gb/",
+  },
+  asia: {
+    region: "asia" as Region,
+    wowStatusPage: "https://worldofwarcraft.blizzard.com/ko-kr/game/status/kr",
+    battleNetUrl: "https://kr.battle.net/login/ko/",
+    diabloUrl: "https://diablo4.blizzard.com/ko-kr/",
+    overwatchUrl: "https://overwatch.blizzard.com/ko-kr/",
+    hearthstoneUrl: "https://hearthstone.blizzard.com/ko-kr/",
+  },
+} as const;
 
 /**
  * Blizzard game slugs as defined in our games table.
@@ -82,166 +69,193 @@ const BLIZZARD_GAMES = {
 } as const;
 
 /**
- * Authenticates with Battle.net OAuth2 using client credentials flow.
- *
- * @param clientId - The Blizzard client ID
- * @param clientSecret - The Blizzard client secret
- * @param region - The API region (us, eu, kr, tw)
- * @returns The access token or null if authentication fails
+ * Keywords indicating maintenance in page content.
  */
-async function authenticateBlizzard(
-  clientId: string,
-  clientSecret: string,
-  region: string
-): Promise<string | null> {
-  const tokenUrl = `https://${region}.battle.net/oauth/token`;
+const MAINTENANCE_KEYWORDS = [
+  "maintenance",
+  "scheduled downtime",
+  "currently unavailable",
+  "undergoing maintenance",
+  "service interruption",
+  "temporarily offline",
+];
 
-  const credentials = btoa(`${clientId}:${clientSecret}`);
+/**
+ * Keywords indicating degraded service.
+ */
+const DEGRADED_KEYWORDS = [
+  "experiencing issues",
+  "degraded",
+  "partial outage",
+  "some players may",
+  "intermittent",
+  "connectivity issues",
+];
 
-  const result = await fetchWithTimeout<BlizzardTokenResponse>(tokenUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
-
-  if (!result.success || !result.data) {
-    return null;
-  }
-
-  return result.data.access_token;
+/**
+ * Checks if HTML content contains maintenance indicators.
+ */
+function containsMaintenanceIndicators(html: string): boolean {
+  const lowerHtml = html.toLowerCase();
+  return MAINTENANCE_KEYWORDS.some((keyword) => lowerHtml.includes(keyword));
 }
 
 /**
- * Fetches WoW realm status from Battle.net API.
- *
- * @param accessToken - The OAuth2 access token
- * @param region - The API region
- * @returns The realm status or null if fetch fails
+ * Checks if HTML content contains degraded service indicators.
  */
-async function fetchWowRealmStatus(
-  accessToken: string,
-  region: string
-): Promise<BlizzardRealmStatus | null> {
-  // Note: This endpoint may not provide real-time status.
-  // The connected-realm endpoint provides realm data but status
-  // availability depends on Blizzard's API.
-  const apiUrl = `https://${region}.api.blizzard.com/data/wow/connected-realm/index?namespace=dynamic-${region}&locale=en_US`;
-
-  const result = await fetchWithTimeout<BlizzardRealmStatus>(apiUrl, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!result.success || !result.data) {
-    return null;
-  }
-
-  return result.data;
+function containsDegradedIndicators(html: string): boolean {
+  const lowerHtml = html.toLowerCase();
+  return DEGRADED_KEYWORDS.some((keyword) => lowerHtml.includes(keyword));
 }
 
 /**
- * Scrapes WoW status from the official status page as a fallback.
- * Only used if the official API lacks real-time status.
+ * Performs a health check on a URL and optionally checks content for status indicators.
  *
- * TODO: This fallback is implemented but the actual parsing logic depends on
- * the structure of the official WoW status page. The current implementation
- * returns "unknown" as a placeholder. Update this once the page structure
- * is analyzed.
- *
- * @param region - The region to check
- * @returns The status determined from scraping
+ * @param url - The URL to check
+ * @param checkContent - Whether to check the HTML content for status indicators
+ * @returns Status based on the health check result
  */
-async function scrapeWowStatus(region: string): Promise<Status> {
-  // Official WoW status page URL
-  const statusUrl = `https://worldofwarcraft.blizzard.com/${region}/game/status`;
-
-  const result = await fetchHtml(statusUrl);
+async function healthCheck(
+  url: string,
+  checkContent: boolean = false
+): Promise<{ accessible: boolean; status: Status; html?: string }> {
+  const result = await fetchHtml(url);
 
   if (!result.success || !result.data) {
-    return "unknown";
+    return { accessible: false, status: "offline" };
   }
 
-  // TODO: Implement actual HTML parsing based on page structure.
-  // The WoW status page uses JavaScript rendering which may require
-  // a different approach (e.g., checking for specific status indicators
-  // in the initial HTML or using the embedded data if available).
-  //
-  // For now, return "online" as a placeholder since we cannot determine
-  // the actual status without proper HTML parsing.
-  //
-  // FALLBACK TRIGGER CONDITIONS:
-  // - Use scraping when Blizzard API does not provide real-time realm status
-  // - API may return realm data without live status indicators
-  // - Check API response for status field availability before falling back
+  const html = result.data;
 
-  console.log(`[INFO] WoW scraping fallback executed for region: ${region}`);
-  return "unknown";
+  if (checkContent) {
+    if (containsMaintenanceIndicators(html)) {
+      return { accessible: true, status: "maintenance", html };
+    }
+    if (containsDegradedIndicators(html)) {
+      return { accessible: true, status: "degraded", html };
+    }
+  }
+
+  return { accessible: true, status: "online", html };
 }
 
 /**
- * Determines overall status for a Blizzard game.
- * For WoW, checks realm data. For other games, uses API or defaults.
- *
- * TODO: Blizzard does not provide a unified status API for all games.
- * - Diablo IV: No public status API found. Monitor Blizzard's official
- *   channels or status page for updates.
- * - Overwatch 2: No public status API found. The game uses different
- *   infrastructure from WoW.
- * - Hearthstone: No public status API found.
- *
- * These titles may need alternative approaches such as:
- * - Monitoring the Blizzard status Twitter account
- * - Scraping the official status page
- * - Using third-party status aggregators
+ * Checks Battle.net login service health for a region.
+ */
+async function checkBattleNetHealth(
+  regionConfig: (typeof REGION_CONFIGS)[keyof typeof REGION_CONFIGS]
+): Promise<boolean> {
+  const result = await fetchHtml(regionConfig.battleNetUrl);
+  return result.success;
+}
+
+/**
+ * Fetches and analyzes WoW status page for a region.
+ * The status page may contain embedded data or status indicators.
+ */
+async function getWowStatus(
+  regionConfig: (typeof REGION_CONFIGS)[keyof typeof REGION_CONFIGS]
+): Promise<Status> {
+  const check = await healthCheck(regionConfig.wowStatusPage, true);
+
+  if (!check.accessible) {
+    return "offline";
+  }
+
+  // Check for specific offline indicators in the WoW status page
+  if (check.html) {
+    const html = check.html.toLowerCase();
+
+    // Look for realm offline indicators
+    if (
+      html.includes("no realm data") ||
+      html.includes("realms are offline") ||
+      html.includes("all realms offline")
+    ) {
+      return "offline";
+    }
+
+    // Check for the status page React mount point - if it loads, services are up
+    if (html.includes("realm-status-mount")) {
+      // The page structure loaded successfully
+      // Additional status comes from maintenance/degraded keyword checks
+      return check.status;
+    }
+  }
+
+  return check.status;
+}
+
+/**
+ * Gets status for Diablo IV by checking the game page.
+ */
+async function getDiabloStatus(
+  regionConfig: (typeof REGION_CONFIGS)[keyof typeof REGION_CONFIGS]
+): Promise<Status> {
+  const check = await healthCheck(regionConfig.diabloUrl, true);
+  return check.accessible ? check.status : "offline";
+}
+
+/**
+ * Gets status for Overwatch 2 by checking the game page.
+ */
+async function getOverwatchStatus(
+  regionConfig: (typeof REGION_CONFIGS)[keyof typeof REGION_CONFIGS]
+): Promise<Status> {
+  const check = await healthCheck(regionConfig.overwatchUrl, true);
+  return check.accessible ? check.status : "offline";
+}
+
+/**
+ * Gets status for Hearthstone by checking the game page.
+ */
+async function getHearthstoneStatus(
+  regionConfig: (typeof REGION_CONFIGS)[keyof typeof REGION_CONFIGS]
+): Promise<Status> {
+  const check = await healthCheck(regionConfig.hearthstoneUrl, true);
+  return check.accessible ? check.status : "offline";
+}
+
+/**
+ * Determines overall status for a Blizzard game in a region.
+ * Uses web scraping and health checks instead of API.
  */
 async function getBlizzardGameStatus(
   game: keyof typeof BLIZZARD_GAMES,
-  region: string,
-  accessToken: string | null
+  regionKey: keyof typeof REGION_CONFIGS
 ): Promise<Status> {
-  if (game === "wow" && accessToken) {
-    const realmStatus = await fetchWowRealmStatus(accessToken, region);
+  const regionConfig = REGION_CONFIGS[regionKey];
 
-    if (!realmStatus) {
-      // Fallback to scraping for WoW
-      return await scrapeWowStatus(region);
-    }
-
-    // If we got realm data but no status info, use scraping fallback
-    // TODO: Check actual API response structure for status indicators
-    return await scrapeWowStatus(region);
+  switch (game) {
+    case "wow":
+      return getWowStatus(regionConfig);
+    case "diablo4":
+      return getDiabloStatus(regionConfig);
+    case "overwatch2":
+      return getOverwatchStatus(regionConfig);
+    case "hearthstone":
+      return getHearthstoneStatus(regionConfig);
+    default:
+      return "unknown";
   }
-
-  // For other Blizzard games, return unknown until API endpoints are identified
-  // TODO: Implement status fetching for Diablo IV, Overwatch 2, Hearthstone
-  // when/if Blizzard provides public status APIs
-  return "unknown";
 }
+
+/**
+ * Regions to check - mapped to our internal region format.
+ */
+const REGIONS_TO_CHECK = ["us", "eu", "asia"] as const;
 
 /**
  * Main Blizzard status fetcher internal action.
  *
  * Fetches status for all Blizzard games across all supported regions.
- * Uses OAuth2 authentication and batches requests within a single token session.
+ * Uses web scraping and health checks - no API credentials required.
  */
 export const fetchStatus = internalAction({
   args: {
     attemptNumber: v.number(),
   },
   handler: async (ctx, { attemptNumber }) => {
-    const clientId = process.env.BLIZZARD_CLIENT_ID;
-    const clientSecret = process.env.BLIZZARD_CLIENT_SECRET;
-
-    // Check for required credentials
-    if (!isEnvVarSet(clientId) || !isEnvVarSet(clientSecret)) {
-      logMissingCredentials("blizzard", ["BLIZZARD_CLIENT_ID", "BLIZZARD_CLIENT_SECRET"]);
-      return;
-    }
-
     const statusRecords: Array<{
       gameSlug: string;
       status: Status;
@@ -249,56 +263,74 @@ export const fetchStatus = internalAction({
       statusMessage?: string;
     }> = [];
 
+    let hasError = false;
+
     // Process each region
-    for (const blizzardRegion of BLIZZARD_REGIONS) {
-      const internalRegion = BLIZZARD_REGION_MAP[blizzardRegion];
+    for (const regionKey of REGIONS_TO_CHECK) {
+      const regionConfig = REGION_CONFIGS[regionKey];
 
       try {
-        // Authenticate once per region (tokens are region-specific)
-        const accessToken = await authenticateBlizzard(
-          clientId!,
-          clientSecret!,
-          blizzardRegion
-        );
+        // First check if Battle.net is accessible for this region
+        const battleNetHealthy = await checkBattleNetHealth(regionConfig);
 
-        if (!accessToken) {
-          logApiError({
-            level: "error",
-            publisher: "blizzard",
-            endpoint: `https://${blizzardRegion}.battle.net/oauth/token`,
-            statusCode: null,
-            message: "OAuth2 authentication failed",
-            timestamp: Date.now(),
-            consecutiveFailures: attemptNumber + 1,
-            attemptNumber,
-          });
-
-          // Skip this region and continue with others
+        if (!battleNetHealthy) {
+          // Battle.net login is down - all games likely affected
+          for (const [, gameSlug] of Object.entries(BLIZZARD_GAMES)) {
+            statusRecords.push({
+              gameSlug,
+              status: "offline",
+              region: regionConfig.region,
+              statusMessage: "Battle.net services unreachable",
+            });
+          }
           continue;
         }
 
         // Fetch status for each Blizzard game
         for (const [gameKey, gameSlug] of Object.entries(BLIZZARD_GAMES)) {
-          const status = await getBlizzardGameStatus(
-            gameKey as keyof typeof BLIZZARD_GAMES,
-            blizzardRegion,
-            accessToken
-          );
+          try {
+            const status = await getBlizzardGameStatus(
+              gameKey as keyof typeof BLIZZARD_GAMES,
+              regionKey
+            );
 
-          statusRecords.push({
-            gameSlug,
-            status,
-            region: internalRegion,
-          });
+            statusRecords.push({
+              gameSlug,
+              status,
+              region: regionConfig.region,
+            });
 
-          logFetchSuccess("blizzard", `${gameSlug}/${blizzardRegion}`, status);
+            logFetchSuccess("blizzard", `${gameSlug}/${regionKey}`, status);
+          } catch (gameError) {
+            // Individual game check failed - mark as unknown
+            statusRecords.push({
+              gameSlug,
+              status: "unknown",
+              region: regionConfig.region,
+            });
+
+            const errorMessage =
+              gameError instanceof Error ? gameError.message : String(gameError);
+            logApiError({
+              level: "warn",
+              publisher: "blizzard",
+              endpoint: `${gameSlug}/${regionKey}`,
+              statusCode: null,
+              message: errorMessage,
+              timestamp: Date.now(),
+              consecutiveFailures: attemptNumber + 1,
+              attemptNumber,
+            });
+          }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        hasError = true;
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         logApiError({
           level: "error",
           publisher: "blizzard",
-          endpoint: `region/${blizzardRegion}`,
+          endpoint: `region/${regionKey}`,
           statusCode: null,
           message: errorMessage,
           timestamp: Date.now(),
@@ -312,6 +344,14 @@ export const fetchStatus = internalAction({
     if (statusRecords.length > 0) {
       await ctx.runMutation(internal.statusMutations.batchUpsertServerStatus, {
         records: statusRecords,
+      });
+    }
+
+    // Schedule retry if there were errors and attempts remaining
+    if (hasError && shouldRetry(attemptNumber)) {
+      await ctx.scheduler.runAfter(0, internal.statusFetcher.scheduleRetry, {
+        platform: "blizzard",
+        currentAttempt: attemptNumber,
       });
     }
   },
