@@ -56,6 +56,8 @@ export interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   /** Update the current user's display name */
   updateDisplayName: (displayName: string) => Promise<void>;
+  /** Request a magic link for passwordless authentication */
+  requestMagicLink: (email: string) => Promise<void>;
   /** Set user from external source (OAuth callback, etc.) */
   setUser: (user: User | null) => void;
   /** Open login modal */
@@ -105,6 +107,7 @@ export function AuthProvider({
   const loginMutation = useMutation(api.auth.login);
   const signUpMutation = useMutation(api.auth.signUp);
   const updateDisplayNameMutation = useMutation(api.auth.updateDisplayName);
+  const requestMagicLinkMutation = useMutation(api.auth.requestMagicLink);
 
   // Load persisted auth state on mount
   useEffect(() => {
@@ -235,6 +238,14 @@ export function AuthProvider({
     [user, updateDisplayNameMutation]
   );
 
+  // Request magic link for passwordless authentication using Convex mutation
+  const requestMagicLink = useCallback(
+    async (email: string) => {
+      await requestMagicLinkMutation({ email });
+    },
+    [requestMagicLinkMutation]
+  );
+
   // Modal controls
   const openLoginModal = useCallback(() => setModalState("login"), []);
   const openSignupModal = useCallback(() => setModalState("signup"), []);
@@ -248,6 +259,7 @@ export function AuthProvider({
     signup,
     logout,
     updateDisplayName,
+    requestMagicLink,
     setUser,
     openLoginModal,
     openSignupModal,

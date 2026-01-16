@@ -19,12 +19,14 @@ import { AuthProvider, useAuth } from "./AuthContext";
 const mockLoginMutation = vi.fn();
 const mockSignUpMutation = vi.fn();
 const mockUpdateDisplayNameMutation = vi.fn();
+const mockRequestMagicLinkMutation = vi.fn();
 
 vi.mock("convex/react", () => ({
   useMutation: vi.fn((api: string) => {
     if (api === "auth:login") return mockLoginMutation;
     if (api === "auth:signUp") return mockSignUpMutation;
     if (api === "auth:updateDisplayName") return mockUpdateDisplayNameMutation;
+    if (api === "auth:requestMagicLink") return mockRequestMagicLinkMutation;
     return vi.fn();
   }),
 }));
@@ -35,6 +37,7 @@ vi.mock("../../convex/_generated/api", () => ({
       login: "auth:login",
       signUp: "auth:signUp",
       updateDisplayName: "auth:updateDisplayName",
+      requestMagicLink: "auth:requestMagicLink",
     },
   },
 }));
@@ -64,12 +67,16 @@ function TestConsumer({
   onLogin,
   onSignup,
   onUpdateDisplayName,
+  onRequestMagicLink,
 }: {
   onLogin?: (email: string, password: string) => void;
   onSignup?: (email: string, password: string, displayName: string) => void;
   onUpdateDisplayName?: (displayName: string) => void;
+  onRequestMagicLink?: (email: string) => void;
 }) {
-  const { user, isAuthenticated, isLoading, login, signup, updateDisplayName, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, login, signup, updateDisplayName, requestMagicLink, logout } = useAuth();
+  const [magicLinkError, setMagicLinkError] = React.useState<string | null>(null);
+  const [magicLinkSuccess, setMagicLinkSuccess] = React.useState(false);
 
   return (
     <div>
@@ -77,6 +84,8 @@ function TestConsumer({
       <div data-testid="is-loading">{isLoading.toString()}</div>
       <div data-testid="user-email">{user?.email || "no-user"}</div>
       <div data-testid="user-display-name">{user?.displayName || "no-name"}</div>
+      <div data-testid="magic-link-error">{magicLinkError || ""}</div>
+      <div data-testid="magic-link-success">{magicLinkSuccess.toString()}</div>
       <button
         data-testid="login-btn"
         onClick={async () => {
@@ -115,6 +124,21 @@ function TestConsumer({
         }}
       >
         Update Name
+      </button>
+      <button
+        data-testid="request-magic-link-btn"
+        onClick={async () => {
+          try {
+            setMagicLinkError(null);
+            await requestMagicLink("magic@example.com");
+            setMagicLinkSuccess(true);
+            onRequestMagicLink?.("magic@example.com");
+          } catch (error) {
+            setMagicLinkError(error instanceof Error ? error.message : "Request failed");
+          }
+        }}
+      >
+        Request Magic Link
       </button>
       <button data-testid="logout-btn" onClick={logout}>
         Logout
@@ -489,6 +513,90 @@ describe("AuthContext", () => {
       await waitFor(() => {
         expect(screen.getByTestId("is-authenticated").textContent).toBe("false");
         expect(screen.getByTestId("user-email").textContent).toBe("no-user");
+      });
+    });
+  });
+
+  describe("Request Magic Link", () => {
+    it("calls requestMagicLink mutation with email", async () => {
+      mockRequestMagicLinkMutation.mockResolvedValueOnce({
+        success: true,
+        message: "Magic link sent to your email",
+      });
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request magic link
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-magic-link-btn"));
+      });
+
+      // Verify mutation was called with correct args
+      expect(mockRequestMagicLinkMutation).toHaveBeenCalledWith({
+        email: "magic@example.com",
+      });
+    });
+
+    it("returns success after magic link request", async () => {
+      mockRequestMagicLinkMutation.mockResolvedValueOnce({
+        success: true,
+        message: "Magic link sent to your email",
+      });
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request magic link
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-magic-link-btn"));
+      });
+
+      // Verify success state
+      await waitFor(() => {
+        expect(screen.getByTestId("magic-link-success").textContent).toBe("true");
+      });
+    });
+
+    it("handles error for invalid email format", async () => {
+      const error = new Error("Invalid email format");
+      mockRequestMagicLinkMutation.mockRejectedValueOnce(error);
+
+      render(
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      );
+
+      // Wait for initial loading
+      await waitFor(() => {
+        expect(screen.getByTestId("is-loading").textContent).toBe("false");
+      });
+
+      // Request magic link (should fail)
+      await act(async () => {
+        await userEvent.click(screen.getByTestId("request-magic-link-btn"));
+      });
+
+      // Verify error is captured
+      await waitFor(() => {
+        expect(screen.getByTestId("magic-link-error").textContent).toBe("Invalid email format");
       });
     });
   });

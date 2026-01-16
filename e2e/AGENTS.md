@@ -18,6 +18,12 @@
 - Log info messages when expected elements not found
 - Make tests resilient - pass if core functionality works
 
+### Magic Link Tests (Test 7-9)
+- `magic-link-option` - Button to switch to magic link form in login modal
+- `magic-link-email-input` - Email input for magic link
+- `magic-link-submit` - Submit button for magic link request
+- `magic-link-sent` - Confirmation message after successful request
+
 ### Running E2E Tests
 ```bash
 # Make sure dev server is running first

@@ -12,6 +12,8 @@
 - `api.auth.login` - Login with email/password, returns `{ user: {...} }`
 - `api.auth.signUp` - Create account, returns `{ userId: string }`
 - `api.auth.updateDisplayName` - Update user display name
+- `api.auth.requestMagicLink` - Request magic link for passwordless auth, returns `{ success, message }`
+- `api.auth.verifyMagicLink` - Verify magic link token, returns `{ user }`
 
 ### Testing Notes
 - Mock `convex/react` and API imports for unit tests

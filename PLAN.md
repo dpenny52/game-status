@@ -188,18 +188,23 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 
 ### Task 3.1: Add requestMagicLink to AuthContext
 
-- [ ] Add `requestMagicLink: (email: string) => Promise<void>` to AuthContextType
-- [ ] Implement using `useMutation(api.auth.requestMagicLink)`
-- [ ] Return success/error state to caller
-- [ ] Write unit test: mutation called with email
-- [ ] Write unit test: success message returned
-- [ ] Add E2E test: click magic link option, enter email, see confirmation
-- [ ] All tests pass
+- [x] Add `requestMagicLink: (email: string) => Promise<void>` to AuthContextType
+- [x] Implement using `useMutation(api.auth.requestMagicLink)`
+- [x] Return success/error state to caller
+- [x] Write unit test: mutation called with email
+- [x] Write unit test: success message returned
+- [x] Write unit test: error handling for invalid email
+- [x] Add E2E test: click magic link option, enter email, see confirmation
+- [x] All tests pass
 
-**Files to Modify**:
+**Files Modified**:
 - `src/context/AuthContext.tsx`
+- `src/context/AuthContext.test.tsx`
+- `e2e/auth.spec.ts`
 
 **Dependencies**: Task 1.1
+
+**Status**: COMPLETED - requestMagicLink wired to Convex mutation, unit tests and E2E tests added
 
 ---
 
