@@ -7,7 +7,7 @@
  * @module auth.config.test
  */
 import { describe, it, expect } from "vitest";
-import { authConfig } from "../auth.config";
+import { authConfig } from "../authConfig.mock";
 import {
   validatePassword,
   isValidEmail,

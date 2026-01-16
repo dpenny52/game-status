@@ -7,7 +7,7 @@
  * @module auth.oauth.test
  */
 import { describe, it, expect } from "vitest";
-import { authConfig } from "../auth.config";
+import { authConfig } from "../authConfig.mock";
 import { isValidEmail } from "../lib/authUtils";
 
 describe("OAuth Provider Configuration", () => {
