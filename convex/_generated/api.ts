@@ -38,6 +38,20 @@ interface GameWithStatus {
 }
 
 /**
+ * Alert subscription data structure.
+ */
+interface AlertSubscription {
+  _id: string;
+  userId: Id<"users">;
+  gameId: Id<"games">;
+  region: Region;
+  isActive: boolean;
+  lastAlertSentAt?: number;
+  unsubscribeToken: string;
+  createdAt: number;
+}
+
+/**
  * Internal API references for server-to-server calls.
  */
 export const internal = {
@@ -79,6 +93,75 @@ export const internal = {
         }>;
       },
       Array<{ gameSlug: string; success: boolean; error?: string }>
+    >,
+  },
+  alertNotifications: {
+    processAlerts: "_internal:alertNotifications:processAlerts" as unknown as FunctionReference<
+      "action",
+      "internal",
+      { gameId: Id<"games">; region: Region },
+      void
+    >,
+    sendAlertEmail: "_internal:alertNotifications:sendAlertEmail" as unknown as FunctionReference<
+      "action",
+      "internal",
+      {
+        subscriptionId: Id<"alertSubscriptions">;
+        userEmail: string;
+        gameName: string;
+        region: Region;
+        unsubscribeToken: string;
+        attemptNumber: number;
+      },
+      void
+    >,
+    getGameById: "_internal:alertNotifications:getGameById" as unknown as FunctionReference<
+      "query",
+      "internal",
+      { gameId: Id<"games"> },
+      { _id: string; displayName: string; slug: string } | null
+    >,
+    getUserById: "_internal:alertNotifications:getUserById" as unknown as FunctionReference<
+      "query",
+      "internal",
+      { userId: Id<"users"> },
+      { _id: string; email: string } | null
+    >,
+    getEligibleSubscriptions: "_internal:alertNotifications:getEligibleSubscriptions" as unknown as FunctionReference<
+      "query",
+      "internal",
+      { gameId: Id<"games">; region: Region },
+      AlertSubscription[]
+    >,
+    updateLastAlertSent: "_internal:alertNotifications:updateLastAlertSent" as unknown as FunctionReference<
+      "mutation",
+      "internal",
+      { subscriptionId: Id<"alertSubscriptions"> },
+      void
+    >,
+    createSubscription: "_internal:alertNotifications:createSubscription" as unknown as FunctionReference<
+      "mutation",
+      "internal",
+      { userId: Id<"users">; gameId: Id<"games">; region: Region },
+      Id<"alertSubscriptions">
+    >,
+    deactivateByToken: "_internal:alertNotifications:deactivateByToken" as unknown as FunctionReference<
+      "mutation",
+      "internal",
+      { token: string },
+      { success: boolean; reason: string }
+    >,
+    toggleSubscription: "_internal:alertNotifications:toggleSubscription" as unknown as FunctionReference<
+      "mutation",
+      "internal",
+      { subscriptionId: Id<"alertSubscriptions">; isActive: boolean },
+      { success: boolean }
+    >,
+    deleteSubscription: "_internal:alertNotifications:deleteSubscription" as unknown as FunctionReference<
+      "mutation",
+      "internal",
+      { subscriptionId: Id<"alertSubscriptions"> },
+      { success: boolean }
     >,
   },
   publishers: {
@@ -218,6 +301,32 @@ export const api = {
           providerId?: string;
         };
       }
+    >,
+  },
+  alertSubscriptions: {
+    getUserSubscriptions: "alertSubscriptions:getUserSubscriptions" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      Array<AlertSubscription & { gameName: string }>
+    >,
+    createSubscription: "alertSubscriptions:createSubscription" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { gameId: Id<"games">; region: Region },
+      Id<"alertSubscriptions">
+    >,
+    toggleSubscription: "alertSubscriptions:toggleSubscription" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { subscriptionId: Id<"alertSubscriptions">; isActive: boolean },
+      { success: boolean }
+    >,
+    deleteSubscription: "alertSubscriptions:deleteSubscription" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { subscriptionId: Id<"alertSubscriptions"> },
+      { success: boolean }
     >,
   },
 };

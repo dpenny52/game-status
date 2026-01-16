@@ -12,7 +12,7 @@
  * - `statusHistory` - Historical status changes for pattern analysis
  * - `users` - User authentication and profile data
  * - `favorites` - Junction table linking users to favorite games
- * - `alertSubscriptions` - Email notification preferences
+ * - `alertSubscriptions` - Email notification preferences with region support
  * - `authCredentials` - Password hashes for email/password auth
  * - `magicLinkTokens` - Tokens for passwordless authentication
  * - `passwordResetTokens` - Tokens for password reset flow
@@ -26,7 +26,7 @@
  * ## Uniqueness Constraints
  * Compound uniqueness is enforced at the application layer:
  * - `favorites`: (userId, gameId) - use by_userId_gameId index to check before insert
- * - `alertSubscriptions`: (userId, gameId) - use compound index to check before insert
+ * - `alertSubscriptions`: (userId, gameId, region) - use compound index to check before insert
  * - `serverStatusRecords`: (gameId, region) - one record per combination
  * - `users`: email - use by_email index to check before insert
  */
@@ -419,35 +419,51 @@ export default defineSchema({
    * Alert Subscriptions Table
    *
    * Stores user preferences for email notifications when game server status changes.
-   * Users can subscribe to alerts for specific games and pause/resume subscriptions.
+   * Users can subscribe to alerts for specific game+region combinations and
+   * pause/resume subscriptions.
    *
    * @remarks
+   * ## Region-Specific Subscriptions
+   * Each subscription is specific to a (userId, gameId, region) combination.
+   * Users can subscribe to different regions for the same game independently.
+   *
    * ## Rate Limiting Support
    * The `lastAlertSentAt` field enables rate limiting to prevent alert spam.
-   * Recommended implementation:
-   * - Check lastAlertSentAt before sending a new alert
-   * - Enforce minimum interval between alerts (e.g., 5 minutes)
-   * - Update lastAlertSentAt after each successful alert send
+   * Implementation enforces a 30-minute cooldown between alerts per subscription.
+   *
+   * ## Unsubscribe Token
+   * Each subscription has a unique `unsubscribeToken` for one-click email unsubscribe.
+   * Tokens are generated cryptographically and stored for validation.
    *
    * ## Compound Uniqueness Constraint
-   * The (userId, gameId) combination must be unique.
-   * Enforced at the application layer using compound index lookups.
+   * The (userId, gameId, region) combination must be unique.
+   * Enforced at the application layer using by_userId_gameId_region index.
    *
    * @index by_userId - For user subscription management
-   * @index by_userId_isActive - Compound index for notification processing (active subscriptions per user)
+   * @index by_userId_isActive - For notification processing (active subscriptions per user)
+   * @index by_userId_gameId_region - For uniqueness enforcement
+   * @index by_gameId_region - For alert processing (find all subscribers for a game+region)
+   * @index by_unsubscribeToken - For one-click unsubscribe validation
    */
   alertSubscriptions: defineTable({
     /** Foreign key to users table - references the subscriber */
     userId: v.id("users"),
     /** Foreign key to games table - references the game to monitor */
     gameId: v.id("games"),
+    /** Geographic region for this subscription - uses region enum validator */
+    region: regionValidator,
     /** Pause/resume subscription flag - false to temporarily disable alerts */
     isActive: v.boolean(),
-    /** Unix timestamp of last alert sent - used for rate limiting (optional) */
+    /** Unix timestamp of last alert sent - used for 30-minute cooldown (null for never sent) */
     lastAlertSentAt: v.optional(v.number()),
+    /** Secure token for one-click email unsubscribe */
+    unsubscribeToken: v.string(),
     /** Unix timestamp for subscription creation (auditing) */
     createdAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_userId_isActive", ["userId", "isActive"]),
+    .index("by_userId_isActive", ["userId", "isActive"])
+    .index("by_userId_gameId_region", ["userId", "gameId", "region"])
+    .index("by_gameId_region", ["gameId", "region"])
+    .index("by_unsubscribeToken", ["unsubscribeToken"]),
 });

@@ -3,6 +3,7 @@
  *
  * Internal mutations for storing server status results in the database.
  * Called by publisher fetcher actions after successfully retrieving status data.
+ * Includes transition detection for triggering alert notifications.
  *
  * @module statusMutations
  */
@@ -12,6 +13,7 @@ import { v } from "convex/values";
 import { statusValidator, regionValidator } from "./schema";
 import type { Status, Region } from "./schema";
 import type { Id } from "./_generated/dataModel";
+import { shouldTriggerAlert } from "./lib/transitionDetection";
 
 /**
  * Upserts a server status record for a game and region.
@@ -21,6 +23,8 @@ import type { Id } from "./_generated/dataModel";
  *
  * Updates lastCheckedAt on every call.
  * Updates statusChangedAt only when the status actually changes.
+ *
+ * When an offline-to-online transition is detected, schedules alert processing.
  */
 export const upsertServerStatus = internalMutation({
   args: {
@@ -30,6 +34,9 @@ export const upsertServerStatus = internalMutation({
     statusMessage: v.optional(v.string()),
   },
   handler: async (ctx, { gameSlug, status, region, statusMessage }) => {
+    // Import internal references dynamically to avoid circular dependency issues
+    const { internal } = await import("./_generated/api");
+
     const now = Date.now();
 
     // Find the game by slug
@@ -43,18 +50,21 @@ export const upsertServerStatus = internalMutation({
       return null;
     }
 
+    const gameId = game._id as Id<"games">;
+
     // Find existing status record for this game+region
     // Query by gameId first, then filter by region
     const existingRecords = await ctx.db
       .query("serverStatusRecords")
-      .withIndex("by_gameId", (q) => q.eq("gameId", game._id))
+      .withIndex("by_gameId", (q) => q.eq("gameId", gameId))
       .collect();
 
     const existingRecord = existingRecords.find((r) => r.region === region);
 
     if (existingRecord) {
-      // Update existing record
-      const statusChanged = existingRecord.status !== status;
+      // Capture previous status before update for transition detection
+      const previousStatus = existingRecord.status as Status;
+      const statusChanged = previousStatus !== status;
       const recordId = existingRecord._id as Id<"serverStatusRecords">;
 
       await ctx.db.patch(recordId, {
@@ -65,11 +75,20 @@ export const upsertServerStatus = internalMutation({
         updatedAt: now,
       });
 
+      // Check for offline-to-online transition and trigger alert processing
+      if (shouldTriggerAlert(previousStatus, status)) {
+        console.log(`[INFO] Offline-to-online transition detected for ${gameSlug}/${region}. Scheduling alert processing.`);
+        await ctx.scheduler.runAfter(0, internal.alertNotifications.processAlerts, {
+          gameId,
+          region,
+        });
+      }
+
       return existingRecord._id;
     } else {
       // Create new record - only include statusMessage if defined
       const baseRecord = {
-        gameId: game._id,
+        gameId,
         status,
         region,
         lastCheckedAt: now,
@@ -84,6 +103,8 @@ export const upsertServerStatus = internalMutation({
           : baseRecord
       );
 
+      // Note: New records don't trigger alerts as there's no previous status to transition from
+
       return newRecordId;
     }
   },
@@ -92,6 +113,9 @@ export const upsertServerStatus = internalMutation({
 /**
  * Batch upserts multiple server status records.
  * Useful for publishers that provide status for multiple games/regions at once.
+ *
+ * Includes transition detection for triggering alert notifications on
+ * offline-to-online transitions.
  */
 export const batchUpsertServerStatus = internalMutation({
   args: {
@@ -105,8 +129,12 @@ export const batchUpsertServerStatus = internalMutation({
     ),
   },
   handler: async (ctx, { records }) => {
+    // Import internal references dynamically to avoid circular dependency issues
+    const { internal } = await import("./_generated/api");
+
     const now = Date.now();
     const results: { gameSlug: string; success: boolean; error?: string }[] = [];
+    const alertsToProcess: Array<{ gameId: Id<"games">; region: Region }> = [];
 
     for (const record of records) {
       try {
@@ -125,18 +153,21 @@ export const batchUpsertServerStatus = internalMutation({
           continue;
         }
 
+        const gameId = game._id as Id<"games">;
+
         // Find existing status record for this game+region
         // Query by gameId first, then filter by region
         const existingRecords = await ctx.db
           .query("serverStatusRecords")
-          .withIndex("by_gameId", (q) => q.eq("gameId", game._id))
+          .withIndex("by_gameId", (q) => q.eq("gameId", gameId))
           .collect();
 
         const existingRecord = existingRecords.find((r) => r.region === record.region);
 
         if (existingRecord) {
-          // Update existing record
-          const statusChanged = existingRecord.status !== record.status;
+          // Capture previous status before update for transition detection
+          const previousStatus = existingRecord.status as Status;
+          const statusChanged = previousStatus !== record.status;
           const recordId = existingRecord._id as Id<"serverStatusRecords">;
 
           await ctx.db.patch(recordId, {
@@ -146,10 +177,16 @@ export const batchUpsertServerStatus = internalMutation({
             statusMessage: record.statusMessage !== undefined ? record.statusMessage : existingRecord.statusMessage,
             updatedAt: now,
           });
+
+          // Check for offline-to-online transition
+          if (shouldTriggerAlert(previousStatus, record.status)) {
+            console.log(`[INFO] Offline-to-online transition detected for ${record.gameSlug}/${record.region}. Queuing alert processing.`);
+            alertsToProcess.push({ gameId, region: record.region });
+          }
         } else {
           // Create new record - only include statusMessage if defined
           const baseRecord = {
-            gameId: game._id,
+            gameId,
             status: record.status,
             region: record.region,
             lastCheckedAt: now,
@@ -163,6 +200,7 @@ export const batchUpsertServerStatus = internalMutation({
               ? { ...baseRecord, statusMessage: record.statusMessage }
               : baseRecord
           );
+          // Note: New records don't trigger alerts as there's no previous status
         }
 
         results.push({ gameSlug: record.gameSlug, success: true });
@@ -174,6 +212,14 @@ export const batchUpsertServerStatus = internalMutation({
           error: errorMessage,
         });
       }
+    }
+
+    // Schedule alert processing for all offline-to-online transitions
+    for (const alert of alertsToProcess) {
+      await ctx.scheduler.runAfter(0, internal.alertNotifications.processAlerts, {
+        gameId: alert.gameId,
+        region: alert.region,
+      });
     }
 
     return results;

@@ -2,13 +2,15 @@
  * Settings Page
  *
  * User profile and account settings page.
- * Displays user information and allows editing display name.
+ * Displays user information, notification preferences, and account actions.
  *
  * @module Settings
  */
 import React, { useState, useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { validateDisplayName } from "../../utils/formValidation";
+import { NotificationPreferences } from "../../components/NotificationPreferences";
+import type { AlertSubscription, Game } from "../../components/NotificationPreferences";
 import "./Settings.css";
 
 /**
@@ -20,6 +22,7 @@ import "./Settings.css";
  * - Email verification status badge
  * - Connected OAuth provider display
  * - Account creation date
+ * - Notification preferences management
  * - Logout button
  *
  * @example
@@ -36,6 +39,22 @@ export function Settings(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Mock data for notification preferences (in production, these would come from Convex queries)
+  // TODO: Replace with actual Convex queries when integrated
+  const [subscriptions, setSubscriptions] = useState<AlertSubscription[]>([]);
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+
+  // Mock games data (in production, this would come from Convex queries)
+  const mockGames: Game[] = [
+    { _id: "game1", displayName: "World of Warcraft" },
+    { _id: "game2", displayName: "Diablo IV" },
+    { _id: "game3", displayName: "Overwatch 2" },
+    { _id: "game4", displayName: "League of Legends" },
+    { _id: "game5", displayName: "Valorant" },
+    { _id: "game6", displayName: "Final Fantasy XIV" },
+  ];
 
   // Reset display name when user changes
   React.useEffect(() => {
@@ -79,6 +98,45 @@ export function Settings(): JSX.Element {
     await logout();
     setShowLogoutConfirm(false);
   }, [logout]);
+
+  // Notification preferences handlers
+  const handleToggleSubscription = useCallback(
+    async (subscriptionId: string, isActive: boolean) => {
+      // TODO: Replace with Convex mutation
+      setSubscriptions((prev) =>
+        prev.map((sub) =>
+          sub._id === subscriptionId ? { ...sub, isActive } : sub
+        )
+      );
+    },
+    []
+  );
+
+  const handleAddSubscription = useCallback(
+    async (gameId: string, region: string) => {
+      // TODO: Replace with Convex mutation
+      const game = mockGames.find((g) => g._id === gameId);
+      if (!game) throw new Error("Game not found");
+
+      const newSubscription: AlertSubscription = {
+        _id: `sub_${Date.now()}`,
+        userId: user?._id || "",
+        gameId,
+        region,
+        isActive: true,
+        gameName: game.displayName,
+        lastAlertSentAt: null,
+      };
+
+      setSubscriptions((prev) => [...prev, newSubscription]);
+    },
+    [user, mockGames]
+  );
+
+  const handleDeleteSubscription = useCallback(async (subscriptionId: string) => {
+    // TODO: Replace with Convex mutation
+    setSubscriptions((prev) => prev.filter((sub) => sub._id !== subscriptionId));
+  }, []);
 
   // Format creation date
   const formatDate = (timestamp?: number) => {
@@ -248,6 +306,17 @@ export function Settings(): JSX.Element {
               </span>
             </div>
           </section>
+
+          {/* Notification Preferences Section */}
+          <NotificationPreferences
+            subscriptions={subscriptions}
+            games={mockGames}
+            onToggle={handleToggleSubscription}
+            onAdd={handleAddSubscription}
+            onDelete={handleDeleteSubscription}
+            isLoading={subscriptionsLoading}
+            error={subscriptionError}
+          />
 
           {/* Account Actions Section */}
           <section className="settings-section settings-section-actions">

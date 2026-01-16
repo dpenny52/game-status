@@ -16,6 +16,7 @@ import {
   actionGeneric,
   mutationGeneric,
   queryGeneric,
+  httpActionGeneric,
 } from "convex/server";
 import type { DataModel } from "./dataModel";
 
@@ -57,3 +58,8 @@ export const internalAction = internalActionGeneric as ActionBuilder<
   DataModel,
   "internal"
 >;
+
+/**
+ * Define an HTTP action.
+ */
+export const httpAction = httpActionGeneric;
