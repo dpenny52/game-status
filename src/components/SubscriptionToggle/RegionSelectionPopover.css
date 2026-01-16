@@ -1,0 +1,158 @@
+/**
+ * RegionSelectionPopover Component Styles
+ *
+ * Styles for the region selection popover dialog.
+ */
+
+.region-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  min-width: 260px;
+  padding: 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  animation: region-popover-enter 0.15s ease-out;
+}
+
+@keyframes region-popover-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.region-popover__header {
+  margin-bottom: 12px;
+}
+
+.region-popover__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.region-popover__subtitle {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.region-popover__regions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.region-popover__region {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.region-popover__region:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.region-popover__region--selected {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.region-popover__region--selected:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.region-popover__checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.region-popover__checkbox:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.region-popover__region-label {
+  flex: 1;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.region-popover__region-short {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.region-popover__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #334155;
+}
+
+.region-popover__button {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.region-popover__button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.region-popover__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.region-popover__button--cancel {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.region-popover__button--cancel:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.1);
+  color: #cbd5e1;
+}
+
+.region-popover__button--save {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.region-popover__button--save:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.region-popover__button--save:active:not(:disabled) {
+  background: #1d4ed8;
+}

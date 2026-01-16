@@ -10,15 +10,21 @@ import { GameCard } from "./GameCard";
 import type { GameCardProps } from "./GameCard";
 import type { Id } from "../../../convex/_generated/dataModel";
 
-// Mock the auth hook
+// Mock the auth hook (used by GameCard)
 const mockUseAuth = vi.fn();
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-// Mock the useMutation hook from convex
+// Mock the auth context (used by SubscriptionToggle)
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// Mock the useMutation and useQuery hooks from convex
 vi.mock("convex/react", () => ({
   useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+  useQuery: vi.fn(() => null),
 }));
 
 afterEach(() => {

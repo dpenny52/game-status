@@ -1,0 +1,89 @@
+/**
+ * SubscriptionToggle Component Styles
+ *
+ * Styles for the bell icon subscription toggle button.
+ * Positioned in the top-right corner of game cards.
+ */
+
+.subscription-toggle {
+  position: relative;
+  display: inline-flex;
+}
+
+.subscription-toggle__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #a0aec0;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.subscription-toggle__button:hover {
+  background: rgba(0, 0, 0, 0.7);
+  color: #e2e8f0;
+}
+
+.subscription-toggle__button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.subscription-toggle__button:active {
+  transform: scale(0.95);
+}
+
+.subscription-toggle__button--subscribed {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.2);
+}
+
+.subscription-toggle__button--subscribed:hover {
+  color: #fde047;
+  background: rgba(250, 204, 21, 0.3);
+}
+
+.subscription-toggle__button--loading {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.subscription-toggle__button:disabled {
+  cursor: not-allowed;
+}
+
+.subscription-toggle__icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.subscription-toggle__icon--filled {
+  animation: subscription-toggle-pulse 0.3s ease-out;
+}
+
+@keyframes subscription-toggle-pulse {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Ensure button doesn't interfere with card click */
+.subscription-toggle__button {
+  z-index: 10;
+}

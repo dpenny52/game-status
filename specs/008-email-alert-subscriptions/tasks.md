@@ -12,15 +12,15 @@ This spec enables users to subscribe to email notifications for specific game+re
 #### Task Group 1: Convex Mutations and Queries
 **Dependencies:** 001-data-models-schema (alertSubscriptions table exists)
 
-- [ ] 1.0 Complete Convex backend layer for subscriptions
-  - [ ] 1.1 Write 2-8 focused tests for subscription mutations and queries
+- [x] 1.0 Complete Convex backend layer for subscriptions
+  - [x] 1.1 Write 2-8 focused tests for subscription mutations and queries
     - Test upsertSubscription creates new subscription correctly
     - Test upsertSubscription updates existing subscription regions
     - Test upsertSubscription deletes unselected regions
     - Test getUserSubscriptions returns subscriptions for authenticated user
     - Test getUserSubscriptions returns empty array for unauthenticated user
     - Test getGameSubscription returns subscription status for specific game
-  - [ ] 1.2 Create `upsertSubscription` mutation
+  - [x] 1.2 Create `upsertSubscription` mutation
     - Accept gameId (v.id("games")) and regions array (v.array(v.string()))
     - Use auth.getUserIdentity() to get current userId
     - Return error if user is not authenticated
@@ -28,28 +28,28 @@ This spec enables users to subscribe to email notifications for specific game+re
     - For each unselected region: delete existing subscription record
     - Enforce uniqueness on (userId, gameId, region) combination
     - Return success status and updated subscription count for toast feedback
-  - [ ] 1.3 Create `toggleSubscriptionActive` mutation
+  - [x] 1.3 Create `toggleSubscriptionActive` mutation
     - Accept subscriptionId and isActive boolean
     - Verify ownership via auth.getUserIdentity()
     - Update isActive field for pause/resume functionality
     - Return updated subscription
-  - [ ] 1.4 Create `deleteSubscription` mutation
+  - [x] 1.4 Create `deleteSubscription` mutation
     - Accept subscriptionId
     - Verify ownership via auth.getUserIdentity()
     - Delete the subscription record entirely
     - Return success status
-  - [ ] 1.5 Create `getUserSubscriptions` query
+  - [x] 1.5 Create `getUserSubscriptions` query
     - Return all subscriptions for current user
     - Include game details (displayName, iconUrl) via join for settings page display
     - Filter by userId using auth context
     - Group results by gameId for efficient rendering
     - Return empty array for unauthenticated users without error
-  - [ ] 1.6 Create `getGameSubscription` query
+  - [x] 1.6 Create `getGameSubscription` query
     - Accept gameId parameter
     - Return subscription status and regions for specific game
     - Used by SubscriptionToggle to determine bell icon state
     - Return null/empty for unauthenticated users
-  - [ ] 1.7 Ensure backend layer tests pass
+  - [x] 1.7 Ensure backend layer tests pass
     - Run ONLY the 2-8 tests written in 1.1
     - Verify all mutations enforce authentication
     - Verify queries return correct data structure
@@ -69,8 +69,8 @@ This spec enables users to subscribe to email notifications for specific game+re
 #### Task Group 2: SubscriptionToggle and Region Popover Components
 **Dependencies:** Task Group 1
 
-- [ ] 2.0 Complete SubscriptionToggle component and region selection popover
-  - [ ] 2.1 Write 2-8 focused tests for SubscriptionToggle and popover
+- [x] 2.0 Complete SubscriptionToggle component and region selection popover
+  - [x] 2.1 Write 2-8 focused tests for SubscriptionToggle and popover
     - Test SubscriptionToggle renders outline bell when not subscribed
     - Test SubscriptionToggle renders filled bell when subscribed
     - Test clicking bell opens region selection popover
@@ -79,7 +79,7 @@ This spec enables users to subscribe to email notifications for specific game+re
     - Test clicking outside popover closes it
     - Test Escape key closes popover
     - Test Subscribe button triggers mutation
-  - [ ] 2.2 Create SubscriptionToggle component
+  - [x] 2.2 Create SubscriptionToggle component
     - Follow FavoriteToggle pattern from 005-favorites-system
     - Render clickable bell icon (outline or filled based on subscription state)
     - Position in top-right corner of game card (star is top-left)
@@ -88,7 +88,7 @@ This spec enables users to subscribe to email notifications for specific game+re
     - Include ARIA attributes: aria-haspopup, aria-expanded, aria-label
     - Only render for authenticated users (use useConvexAuth hook)
     - Show loading indicator during mutation
-  - [ ] 2.3 Create RegionSelectionPopover component
+  - [x] 2.3 Create RegionSelectionPopover component
     - Anchor popover to bell icon position
     - List all regions as checkboxes: NA, EU, Asia, OCE, Global
     - Map internal values ("na", "eu", "asia", "oce", "global") to display labels
@@ -96,26 +96,26 @@ This spec enables users to subscribe to email notifications for specific game+re
     - Include "Subscribe" button (or "Save" when editing existing)
     - Pre-check regions user is already subscribed to
     - Position popover to avoid viewport overflow (flip to above if near bottom)
-  - [ ] 2.4 Implement popover close behaviors
+  - [x] 2.4 Implement popover close behaviors
     - Close on outside click (use click-outside detection)
     - Close on Escape key press
     - Close on successful subscription submission
     - Manage focus appropriately for accessibility
-  - [ ] 2.5 Implement optimistic UI updates
+  - [x] 2.5 Implement optimistic UI updates
     - Update bell icon state immediately on subscription save
     - Revert to previous state if mutation fails
     - Show subtle error indicator via toast if operation fails
     - Maintain responsive feel with immediate visual feedback
-  - [ ] 2.6 Apply visual states and transitions
+  - [x] 2.6 Apply visual states and transitions
     - CSS transition between filled and outline bell states
     - Loading spinner overlay on bell icon during mutation
     - Hover and focus states for accessibility
-  - [ ] 2.7 Integrate SubscriptionToggle into GameCard
+  - [x] 2.7 Integrate SubscriptionToggle into GameCard
     - Extend existing GameCard component to accept subscription props
     - Add slot for SubscriptionToggle in top-right corner
     - Maintain existing card layout and status display functionality
     - Reference 003-status-dashboard-ui for GameCard structure
-  - [ ] 2.8 Ensure component tests pass
+  - [x] 2.8 Ensure component tests pass
     - Run ONLY the 2-8 tests written in 2.1
     - Verify bell icon states render correctly
     - Verify popover interactions work
@@ -134,8 +134,8 @@ This spec enables users to subscribe to email notifications for specific game+re
 #### Task Group 3: Settings Page and Toast Notifications
 **Dependencies:** Task Group 1, Task Group 2
 
-- [ ] 3.0 Complete settings page subscription management and toast system
-  - [ ] 3.1 Write 2-8 focused tests for settings page and toasts
+- [x] 3.0 Complete settings page subscription management and toast system
+  - [x] 3.1 Write 2-8 focused tests for settings page and toasts
     - Test Email Alerts section renders in settings page
     - Test subscriptions list displays grouped by game
     - Test pause/resume toggle updates subscription isActive
@@ -143,43 +143,43 @@ This spec enables users to subscribe to email notifications for specific game+re
     - Test delete confirmation removes subscription
     - Test toast appears on successful subscription
     - Test toast auto-dismisses after 3 seconds
-  - [ ] 3.2 Create EmailAlertsSection component for settings page
+  - [x] 3.2 Create EmailAlertsSection component for settings page
     - Add "Email Alerts" section to existing settings page from 004-user-authentication
     - Query getUserSubscriptions for current user's subscriptions
     - Display empty state message if no subscriptions
     - Group subscriptions by game for display
-  - [ ] 3.3 Create SubscriptionListItem component
+  - [x] 3.3 Create SubscriptionListItem component
     - Display game icon and game name
     - Show list of subscribed regions as tags/badges
     - Include active status indicator
     - Apply grayed-out/muted styling for paused subscriptions (isActive = false)
-  - [ ] 3.4 Implement pause/resume toggle
+  - [x] 3.4 Implement pause/resume toggle
     - Inline toggle to set isActive boolean
     - Call toggleSubscriptionActive mutation
     - Update visual state immediately (optimistic update)
     - Paused items remain in place but visually muted
-  - [ ] 3.5 Implement edit regions functionality
+  - [x] 3.5 Implement edit regions functionality
     - Edit button opens RegionSelectionPopover (reuse from Task Group 2)
     - Pre-populate with current subscribed regions
     - Call upsertSubscription mutation on save
     - Update list immediately on success
-  - [ ] 3.6 Implement delete with confirmation
+  - [x] 3.6 Implement delete with confirmation
     - Delete button triggers confirmation dialog
     - Confirmation message: "Remove alerts for [Game Name]?"
     - Call deleteSubscription mutation on confirm
     - Remove item from list on success
-  - [ ] 3.7 Create Toast notification component
+  - [x] 3.7 Create Toast notification component
     - Bottom-right positioned toast container
     - Message format: "Subscribed to [Game Name] alerts"
     - Auto-dismiss after 3 seconds
     - Support stacking multiple toasts
     - Subtle entrance and exit animations
     - Use or create toast context/provider for global access
-  - [ ] 3.8 Integrate toast notifications
+  - [x] 3.8 Integrate toast notifications
     - Show success toast on subscription creation
     - Show error toast on mutation failure
     - Trigger toasts from SubscriptionToggle and settings page actions
-  - [ ] 3.9 Ensure settings page and toast tests pass
+  - [x] 3.9 Ensure settings page and toast tests pass
     - Run ONLY the 2-8 tests written in 3.1
     - Verify settings page displays subscriptions correctly
     - Verify management actions work
@@ -201,25 +201,25 @@ This spec enables users to subscribe to email notifications for specific game+re
 #### Task Group 4: Test Review and Gap Analysis
 **Dependencies:** Task Groups 1-3
 
-- [ ] 4.0 Review existing tests and fill critical gaps only
-  - [ ] 4.1 Review tests from Task Groups 1-3
+- [x] 4.0 Review existing tests and fill critical gaps only
+  - [x] 4.1 Review tests from Task Groups 1-3
     - Review the 2-8 tests written by backend developer (Task 1.1)
     - Review the 2-8 tests written for components (Task 2.1)
     - Review the 2-8 tests written for settings/toasts (Task 3.1)
     - Total existing tests: approximately 18-24 tests
-  - [ ] 4.2 Analyze test coverage gaps for subscription feature only
+  - [x] 4.2 Analyze test coverage gaps for subscription feature only
     - Identify critical user workflows lacking test coverage
     - Focus ONLY on gaps related to email alert subscriptions
     - Do NOT assess entire application test coverage
     - Prioritize end-to-end workflows over unit test gaps
-  - [ ] 4.3 Write up to 10 additional strategic tests maximum
+  - [x] 4.3 Write up to 10 additional strategic tests maximum
     - Focus on integration between components
     - Test complete subscription workflow: click bell -> select regions -> subscribe -> verify toast -> check settings
     - Test complete unsubscribe workflow: settings page -> delete -> confirm -> verify removed
     - Test authentication boundary: verify unauthenticated users see no bell icons
     - Test optimistic update revert on mutation failure
     - Do NOT write comprehensive coverage for all edge cases
-  - [ ] 4.4 Run feature-specific tests only
+  - [x] 4.4 Run feature-specific tests only
     - Run ONLY tests related to email alert subscriptions (tests from 1.1, 2.1, 3.1, and 4.3)
     - Expected total: approximately 28-34 tests maximum
     - Do NOT run the entire application test suite

@@ -52,6 +52,30 @@ interface AlertSubscription {
 }
 
 /**
+ * Subscriptions grouped by game for settings page display.
+ */
+interface GroupedSubscriptions {
+  gameId: string;
+  gameName: string;
+  iconUrl: string;
+  subscriptions: Array<{
+    _id: string;
+    region: string;
+    isActive: boolean;
+    createdAt: number;
+  }>;
+}
+
+/**
+ * Game subscription status for bell icon.
+ */
+interface GameSubscriptionStatus {
+  isSubscribed: boolean;
+  regions: string[];
+  subscriptionIds: string[];
+}
+
+/**
  * Internal API references for server-to-server calls.
  */
 export const internal = {
@@ -327,6 +351,44 @@ export const api = {
       "public",
       { subscriptionId: Id<"alertSubscriptions"> },
       { success: boolean }
+    >,
+  },
+  subscriptions: {
+    upsertSubscription: "subscriptions:upsertSubscription" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { gameId: Id<"games">; regions: string[] },
+      { success: boolean; count: number; gameName: string }
+    >,
+    toggleSubscriptionActive: "subscriptions:toggleSubscriptionActive" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { subscriptionId: Id<"alertSubscriptions">; isActive: boolean },
+      { success: boolean }
+    >,
+    deleteSubscription: "subscriptions:deleteSubscription" as unknown as FunctionReference<
+      "mutation",
+      "public",
+      { subscriptionId: Id<"alertSubscriptions"> },
+      { success: boolean }
+    >,
+    getUserSubscriptions: "subscriptions:getUserSubscriptions" as unknown as FunctionReference<
+      "query",
+      "public",
+      Record<string, never>,
+      GroupedSubscriptions[]
+    >,
+    getGameSubscription: "subscriptions:getGameSubscription" as unknown as FunctionReference<
+      "query",
+      "public",
+      { gameId: Id<"games"> },
+      GameSubscriptionStatus | null
+    >,
+    getGameSubscribedRegions: "subscriptions:getGameSubscribedRegions" as unknown as FunctionReference<
+      "query",
+      "public",
+      { gameId: Id<"games"> },
+      string[]
     >,
   },
 };

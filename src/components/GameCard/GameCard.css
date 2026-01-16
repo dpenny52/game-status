@@ -1,7 +1,7 @@
 /**
  * GameCard Styles
  *
- * Styling for game cards with status indicators, timestamps, and favorites.
+ * Styling for game cards with status indicators, timestamps, favorites, and subscriptions.
  * Uses mobile-first approach with breakpoints: phone (<640px), tablet (640-1024px), desktop (>1024px)
  */
 
@@ -76,6 +76,14 @@
   z-index: 1;
 }
 
+/* Subscription toggle wrapper - positioned in top-right corner */
+.game-card-subscription-wrapper {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  z-index: 1;
+}
+
 /* Header - Mobile first */
 .game-card-header {
   display: flex;
@@ -83,12 +91,19 @@
   gap: 0.5rem;
   /* Add padding-left to account for favorite toggle when present */
   padding-left: 0;
+  /* Add padding-right to account for subscription toggle when present */
+  padding-right: 0;
 }
 
 /* When favorite toggle is present, add space for it */
 .game-card-favorited .game-card-header,
 .game-card:has(.game-card-favorite-wrapper) .game-card-header {
   padding-left: 1.5rem;
+}
+
+/* When subscription toggle is present, add space for it */
+.game-card:has(.game-card-subscription-wrapper) .game-card-header {
+  padding-right: 1.5rem;
 }
 
 /* Game icon - Mobile first (smaller on phone) */
@@ -210,6 +225,11 @@
     left: 0.5rem;
   }
 
+  .game-card-subscription-wrapper {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
   .game-card-header {
     gap: 0.625rem;
   }
@@ -217,6 +237,10 @@
   .game-card-favorited .game-card-header,
   .game-card:has(.game-card-favorite-wrapper) .game-card-header {
     padding-left: 1.625rem;
+  }
+
+  .game-card:has(.game-card-subscription-wrapper) .game-card-header {
+    padding-right: 1.625rem;
   }
 
   .game-card-icon {
@@ -264,6 +288,10 @@
   .game-card-favorited .game-card-header,
   .game-card:has(.game-card-favorite-wrapper) .game-card-header {
     padding-left: 1.75rem;
+  }
+
+  .game-card:has(.game-card-subscription-wrapper) .game-card-header {
+    padding-right: 1.75rem;
   }
 
   .game-card-icon {

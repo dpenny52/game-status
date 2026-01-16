@@ -1,0 +1,120 @@
+/**
+ * EmailAlertsSection Styles
+ *
+ * Settings page section for managing email alert subscriptions.
+ * Follows the existing settings page visual patterns.
+ */
+
+/* Section container */
+.email-alerts-section {
+  background-color: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+/* Title */
+.email-alerts-section__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+}
+
+/* Description */
+.email-alerts-section__description {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #a0a0a0);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+/* Loading state */
+.email-alerts-section__loading {
+  text-align: center;
+  color: var(--color-text-secondary, #a0a0a0);
+  padding: 2rem 0;
+  font-size: 0.875rem;
+}
+
+/* Empty state */
+.email-alerts-section__empty {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.email-alerts-section__empty p {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-secondary, #a0a0a0);
+  font-size: 0.875rem;
+}
+
+.email-alerts-section__empty-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Subscription list */
+.email-alerts-section__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Game group */
+.email-alerts-section__game-group {
+  background-color: var(--color-surface-elevated, #2a2a40);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* Game header */
+.email-alerts-section__game-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+
+/* Game icon */
+.email-alerts-section__game-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  background-color: var(--color-surface, #1a1a2e);
+}
+
+/* Game name */
+.email-alerts-section__game-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+  margin: 0;
+}
+
+/* Subscriptions container within game group */
+.email-alerts-section__subscriptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .email-alerts-section {
+    padding: 1.25rem;
+  }
+
+  .email-alerts-section__game-group {
+    padding: 0.875rem;
+  }
+
+  .email-alerts-section__game-icon {
+    width: 28px;
+    height: 28px;
+  }
+}

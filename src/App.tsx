@@ -1,11 +1,12 @@
 /**
  * App Component
  *
- * Root application component that sets up the Convex provider
- * and renders the Dashboard.
+ * Root application component that sets up the Convex provider,
+ * Toast notifications, and renders the Dashboard.
  */
 import React from "react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ToastProvider } from "./context/ToastContext";
 import { Dashboard } from "./pages/Dashboard";
 import "./App.css";
 
@@ -20,17 +21,21 @@ export function App(): JSX.Element {
   // If Convex URL is not configured, show demo mode
   if (!convex) {
     return (
-      <div className="app">
-        <Dashboard />
-      </div>
+      <ToastProvider>
+        <div className="app">
+          <Dashboard />
+        </div>
+      </ToastProvider>
     );
   }
 
   return (
     <ConvexProvider client={convex}>
-      <div className="app">
-        <Dashboard />
-      </div>
+      <ToastProvider>
+        <div className="app">
+          <Dashboard />
+        </div>
+      </ToastProvider>
     </ConvexProvider>
   );
 }

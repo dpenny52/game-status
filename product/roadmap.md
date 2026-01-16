@@ -10,7 +10,7 @@
 
 5. [ ] Favorites System — Allow authenticated users to mark games as favorites, persist selections to their account, and display favorites pinned at the top of the dashboard `S`
 
-6. [ ] Email Alert Subscriptions — Enable users to subscribe to email notifications for specific games, storing their alert preferences in the database `S`
+6. [x] Email Alert Subscriptions — Enable users to subscribe to email notifications for specific games, storing their alert preferences in the database `S`
 
 7. [ ] Alert Notification Service — Build backend service that detects when a game transitions from offline to online and sends email notifications to subscribed users `M`
 

@@ -9,8 +9,15 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { AuthProvider } from "../context/AuthContext";
+import { ToastProvider } from "../context/ToastContext";
 import { Settings } from "./Settings";
 import { ResetPassword } from "./ResetPassword";
+
+// Mock convex hooks
+vi.mock("convex/react", () => ({
+  useQuery: vi.fn(() => []),
+  useMutation: vi.fn(() => vi.fn().mockResolvedValue(true)),
+}));
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -76,7 +83,11 @@ function renderWithAuth(ui: React.ReactElement, authenticated = false) {
     );
   }
 
-  return render(<AuthProvider>{ui}</AuthProvider>);
+  return render(
+    <ToastProvider>
+      <AuthProvider>{ui}</AuthProvider>
+    </ToastProvider>
+  );
 }
 
 describe("Settings Page", () => {
