@@ -252,7 +252,7 @@ Ensure the Convex backend is working and all pages pull data from it. The backen
 - [x] Write unit test: mutation called with email
 - [x] Write unit test: success message shown regardless of email existence
 - [x] Add requestPasswordReset method to AuthContext with unit tests
-- [ ] Add E2E test: enter email, see confirmation message (requires Task 4.2)
+- [x] Add E2E test: enter email, see confirmation message (covered in e2e/auth.spec.ts "submitting forgot password shows success message")
 - [x] All unit tests pass
 
 **Files Created**:
