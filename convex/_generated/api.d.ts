@@ -15,6 +15,7 @@ import type * as favorites from "../favorites.js";
 import type * as http from "../http.js";
 import type * as lib_authUtils from "../lib/authUtils.js";
 import type * as lib_fetchUtils from "../lib/fetchUtils.js";
+import type * as lib_htmlUtils from "../lib/htmlUtils.js";
 import type * as lib_logger from "../lib/logger.js";
 import type * as lib_retry from "../lib/retry.js";
 import type * as lib_transitionDetection from "../lib/transitionDetection.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/authUtils": typeof lib_authUtils;
   "lib/fetchUtils": typeof lib_fetchUtils;
+  "lib/htmlUtils": typeof lib_htmlUtils;
   "lib/logger": typeof lib_logger;
   "lib/retry": typeof lib_retry;
   "lib/transitionDetection": typeof lib_transitionDetection;

@@ -146,3 +146,32 @@ The following games are seeded in `seedGames.ts` (11 total):
 - Export pattern: Functions are exported for unit testing (`export function escapeHtml`)
 - Test file: `convex/__tests__/http.xss.test.ts` - covers escaping, attack vectors, edge cases
 - E2E tests: `e2e/http-xss-security.spec.ts` - integration tests for unsubscribe endpoint security
+
+## Security - XSS Prevention in Email Templates (Issue #13)
+
+- CRITICAL: Always escape dynamic content before inserting into email HTML templates
+- Pattern: Use `escapeHtml()` from `convex/lib/htmlUtils.ts` to sanitize all dynamic content
+- The `escapeHtml()` function escapes 8 HTML special characters:
+  - `&` → `&amp;` (prevents HTML entity injection)
+  - `<` → `&lt;` (prevents tag injection)
+  - `>` → `&gt;` (prevents tag closing)
+  - `"` → `&quot;` (prevents attribute breakout with double quotes)
+  - `'` → `&#x27;` (prevents attribute breakout with single quotes)
+  - `/` → `&#x2F;` (prevents tag closing via `</`)
+  - `` ` `` → `&#x60;` (prevents template literal injection)
+  - `=` → `&#x3D;` (prevents attribute injection)
+- Additional utilities in `htmlUtils.ts`:
+  - `escapeHtmlAttribute()` - alias for escapeHtml for clearer intent
+  - `isSafeUrl()` - validates URLs against dangerous protocols (javascript:, data:, vbscript:, file:)
+  - `sanitizeUrl()` - returns empty string for unsafe URLs, escapes safe URLs
+- Usage in `alertNotifications.ts` sendAlertEmail:
+  - `gameName` → `escapeHtml(gameName)` before inserting into HTML
+  - `region` → `escapeHtml(region.toUpperCase())` before inserting
+  - URLs → `sanitizeUrl()` for dashboard link, `escapeHtml()` for unsubscribe URL
+  - Token in URL → `encodeURIComponent(unsubscribeToken)` for proper URL encoding
+- Key insight: HTML escaping preserves text content (e.g., "onerror" is still visible as text)
+  but breaks HTML tag structure (e.g., `<img` becomes `&lt;img`), making payloads non-executable
+- Test files:
+  - `convex/__tests__/htmlUtils.test.ts` - unit tests for escaping functions
+  - `convex/__tests__/alertNotification.xss.test.ts` - email template security tests
+  - `e2e/email-template-security.spec.ts` - E2E integration tests

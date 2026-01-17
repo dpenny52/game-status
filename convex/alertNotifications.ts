@@ -13,6 +13,7 @@ import { regionValidator } from "./schema";
 import type { Id } from "./_generated/dataModel";
 import type { Region } from "./schema";
 import { generateSecureToken } from "./lib/authUtils";
+import { escapeHtml, sanitizeUrl } from "./lib/htmlUtils";
 import { internal } from "./_generated/api";
 
 /**
@@ -311,24 +312,29 @@ export const sendAlertEmail = internalAction({
       }
 
       // Build email content
+      // Escape all user-controlled/dynamic content to prevent XSS (Issue #13)
+      const safeGameName = escapeHtml(gameName);
+      const safeRegion = escapeHtml(region.toUpperCase());
       const subject = `${gameName} is back online - ${region.toUpperCase()}`;
       const timestamp = new Date().toISOString();
-      const unsubscribeUrl = `${process.env.CONVEX_SITE_URL || ""}/api/unsubscribe?token=${unsubscribeToken}`;
+      const baseUrl = process.env.CONVEX_SITE_URL || "";
+      const unsubscribeUrl = `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
+      const dashboardUrl = sanitizeUrl(baseUrl) || "#";
 
       const htmlBody = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #10b981;">${gameName} is back online!</h2>
-          <p>The ${gameName} servers in the <strong>${region.toUpperCase()}</strong> region are now online.</p>
-          <p style="color: #666;">Status changed at: ${timestamp}</p>
+          <h2 style="color: #10b981;">${safeGameName} is back online!</h2>
+          <p>The ${safeGameName} servers in the <strong>${safeRegion}</strong> region are now online.</p>
+          <p style="color: #666;">Status changed at: ${escapeHtml(timestamp)}</p>
           <p>
-            <a href="${process.env.CONVEX_SITE_URL || "#"}" style="display: inline-block; background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">
+            <a href="${dashboardUrl}" style="display: inline-block; background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">
               View Dashboard
             </a>
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
           <p style="color: #999; font-size: 12px;">
-            You received this email because you subscribed to alerts for ${gameName}.
-            <a href="${unsubscribeUrl}" style="color: #6366f1;">Unsubscribe</a>
+            You received this email because you subscribed to alerts for ${safeGameName}.
+            <a href="${escapeHtml(unsubscribeUrl)}" style="color: #6366f1;">Unsubscribe</a>
           </p>
         </div>
       `;
