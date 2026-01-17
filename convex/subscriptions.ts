@@ -45,16 +45,18 @@ async function generateUnsubscribeTokenWithHash(): Promise<{ token: string; toke
  * For each selected region: creates subscription if not exists, sets isActive to true if paused.
  * For each unselected region: deletes existing subscription record.
  *
+ * Security: userId is always derived from the authenticated user's identity,
+ * never accepted from client input (Issue #16 - IDOR prevention).
+ *
  * @param gameId - The ID of the game to subscribe to
  * @param regions - Array of region codes to subscribe to
- * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Object with success status and subscription count
  * @throws Error if user is not authenticated
  *
  * @example
  * ```typescript
  * const upsertSubscription = useMutation(api.subscriptions.upsertSubscription);
- * const result = await upsertSubscription({ gameId: "game123", regions: ["na", "eu"], userId: "user123" });
+ * const result = await upsertSubscription({ gameId: "game123", regions: ["na", "eu"] });
  * console.log(`Subscribed to ${result.count} regions`);
  * ```
  */
@@ -62,22 +64,20 @@ export const upsertSubscription = mutation({
   args: {
     gameId: v.id("games"),
     regions: v.array(v.string()),
-    userId: v.optional(v.id("users")),
+    // Issue #16: Removed userId from args - always derive from auth to prevent IDOR
   },
-  handler: async (ctx, { gameId, regions, userId: providedUserId }): Promise<{ success: boolean; count: number; gameName: string }> => {
-    let userId: Id<"users"> | undefined = providedUserId;
+  handler: async (ctx, { gameId, regions }): Promise<{ success: boolean; count: number; gameName: string }> => {
+    // Issue #16: Always derive userId from authenticated identity, never from client
+    let userId: Id<"users"> | undefined;
 
-    // If userId not provided, try to get from Convex auth identity
-    if (!userId) {
-      const identity = await ctx.auth.getUserIdentity();
-      if (identity?.email) {
-        const user = await ctx.db
-          .query("users")
-          .withIndex("by_email", (q) => q.eq("email", identity.email!))
-          .first();
-        if (user) {
-          userId = user._id;
-        }
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity?.email) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+      if (user) {
+        userId = user._id;
       }
     }
 
@@ -420,35 +420,35 @@ export interface GameSubscriptionStatus {
  * Used by SubscriptionToggle to determine bell icon state.
  * Returns null for unauthenticated users.
  *
+ * Security: userId is always derived from the authenticated user's identity,
+ * never accepted from client input (Issue #16 - IDOR prevention).
+ *
  * @param gameId - The ID of the game to check
- * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Subscription status with subscribed regions, or null if not authenticated
  *
  * @example
  * ```typescript
- * const status = useQuery(api.subscriptions.getGameSubscription, { gameId: "game123", userId: "user123" });
+ * const status = useQuery(api.subscriptions.getGameSubscription, { gameId: "game123" });
  * const isSubscribed = status?.isSubscribed ?? false;
  * ```
  */
 export const getGameSubscription = query({
   args: {
     gameId: v.id("games"),
-    userId: v.optional(v.id("users")),
+    // Issue #16: Removed userId from args - always derive from auth to prevent IDOR
   },
-  handler: async (ctx, { gameId, userId: providedUserId }): Promise<GameSubscriptionStatus | null> => {
-    let userId: Id<"users"> | undefined = providedUserId;
+  handler: async (ctx, { gameId }): Promise<GameSubscriptionStatus | null> => {
+    // Issue #16: Always derive userId from authenticated identity, never from client
+    let userId: Id<"users"> | undefined;
 
-    // If userId not provided, try to get from Convex auth identity
-    if (!userId) {
-      const identity = await ctx.auth.getUserIdentity();
-      if (identity?.email) {
-        const user = await ctx.db
-          .query("users")
-          .withIndex("by_email", (q) => q.eq("email", identity.email!))
-          .first();
-        if (user) {
-          userId = user._id;
-        }
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity?.email) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+      if (user) {
+        userId = user._id;
       }
     }
 
@@ -480,29 +480,29 @@ export const getGameSubscription = query({
  *
  * Used by the region selection popover to pre-check existing regions.
  *
+ * Security: userId is always derived from the authenticated user's identity,
+ * never accepted from client input (Issue #16 - IDOR prevention).
+ *
  * @param gameId - The ID of the game to check
- * @param userId - Optional user ID (for custom auth systems without Convex native auth)
  * @returns Array of subscribed regions (all subscriptions, not just active)
  */
 export const getGameSubscribedRegions = query({
   args: {
     gameId: v.id("games"),
-    userId: v.optional(v.id("users")),
+    // Issue #16: Removed userId from args - always derive from auth to prevent IDOR
   },
-  handler: async (ctx, { gameId, userId: providedUserId }): Promise<string[]> => {
-    let userId: Id<"users"> | undefined = providedUserId;
+  handler: async (ctx, { gameId }): Promise<string[]> => {
+    // Issue #16: Always derive userId from authenticated identity, never from client
+    let userId: Id<"users"> | undefined;
 
-    // If userId not provided, try to get from Convex auth identity
-    if (!userId) {
-      const identity = await ctx.auth.getUserIdentity();
-      if (identity?.email) {
-        const user = await ctx.db
-          .query("users")
-          .withIndex("by_email", (q) => q.eq("email", identity.email!))
-          .first();
-        if (user) {
-          userId = user._id;
-        }
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity?.email) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+      if (user) {
+        userId = user._id;
       }
     }
 

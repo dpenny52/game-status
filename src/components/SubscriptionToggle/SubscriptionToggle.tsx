@@ -15,7 +15,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { useAuth } from "../../context/AuthContext";
 import { RegionSelectionPopover } from "./RegionSelectionPopover";
 import "./SubscriptionToggle.css";
@@ -97,24 +96,22 @@ export function SubscriptionToggle({
   gameName,
   onSubscriptionChange,
 }: SubscriptionToggleProps): React.JSX.Element | null {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [optimisticSubscribed, setOptimisticSubscribed] = useState<boolean | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Get userId from auth context for custom auth (not Convex native auth)
-  const userId = user?._id as Id<"users"> | undefined;
-
-  // Query subscription status - pass userId for custom auth systems
+  // Issue #16: userId is now derived server-side from auth identity, not passed from client
+  // Query subscription status - authentication is handled server-side
   const subscriptionStatus = useQuery(
     api.subscriptions.getGameSubscription,
-    isAuthenticated && userId ? { gameId, userId } : "skip"
+    isAuthenticated ? { gameId } : "skip"
   );
 
   // Query all subscribed regions (including inactive) for pre-populating popover
   const subscribedRegions = useQuery(
     api.subscriptions.getGameSubscribedRegions,
-    isAuthenticated && userId ? { gameId, userId } : "skip"
+    isAuthenticated ? { gameId } : "skip"
   );
 
   // Mutation for upserting subscriptions
@@ -163,10 +160,10 @@ export function SubscriptionToggle({
       setOptimisticSubscribed(willBeSubscribed);
 
       try {
+        // Issue #16: userId is derived server-side from auth identity, not passed from client
         const result = await upsertSubscription({
           gameId,
           regions: selectedRegions,
-          userId, // Pass userId for custom auth systems
         });
 
         // Call callback if provided
@@ -182,7 +179,7 @@ export function SubscriptionToggle({
         throw error;
       }
     },
-    [gameId, upsertSubscription, onSubscriptionChange, userId]
+    [gameId, upsertSubscription, onSubscriptionChange]
   );
 
   // Don't render for unauthenticated users

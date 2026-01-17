@@ -41,16 +41,45 @@
 ## Custom Auth vs Convex Native Auth
 
 - This app uses a custom localStorage-based auth system, NOT Convex's native auth (Clerk/Auth0)
-- `ctx.auth.getUserIdentity()` returns null because there's no JWT-based auth session
-- Mutations/queries that need user context must accept an optional `userId` parameter
-- Pattern: First check `providedUserId`, then fall back to `ctx.auth.getUserIdentity()` for flexibility
-- Frontend passes `userId` from AuthContext's `user._id` to all subscription-related mutations
+- The frontend stores user state in localStorage (`gamestatus_auth` key)
+- Backend functions derive userId from `ctx.auth.getUserIdentity()` - never accept from client
+- See Issue #16 fix below for the proper pattern
 
 ## Subscription Mutations
 
-- `subscriptions:upsertSubscription` - Accepts optional `userId` for custom auth compatibility
-- `subscriptions:getGameSubscription` - Accepts optional `userId` for queries
-- `subscriptions:getGameSubscribedRegions` - Accepts optional `userId` for queries
+- `subscriptions:upsertSubscription` - userId derived from auth (not from client)
+- `subscriptions:getGameSubscription` - userId derived from auth
+- `subscriptions:getGameSubscribedRegions` - userId derived from auth
+
+## Security - IDOR Prevention in Subscriptions (Issue #16)
+
+- CRITICAL: Never accept `userId` from client input for mutations/queries that access user data
+- Pattern: Always derive userId from `ctx.auth.getUserIdentity()` on the server
+- The subscription functions no longer accept `userId` parameter - removed to prevent IDOR attacks
+- Previous vulnerability: User A could pass User B's userId to manipulate their subscriptions
+- Fix applied to:
+  - `upsertSubscription` - removed userId from args, now uses auth identity
+  - `getGameSubscription` - removed userId from args, now uses auth identity
+  - `getGameSubscribedRegions` - removed userId from args, now uses auth identity
+- Frontend changes in `SubscriptionToggle.tsx`:
+  - Removed userId from useQuery calls
+  - Removed userId from useMutation calls
+  - Removed unused Id import and user from useAuth destructuring
+- Server-side pattern:
+  ```typescript
+  // CORRECT: Derive userId from auth
+  const identity = await ctx.auth.getUserIdentity();
+  const user = await ctx.db.query("users")
+    .withIndex("by_email", (q) => q.eq("email", identity.email))
+    .first();
+  const userId = user._id;
+
+  // WRONG: Accept userId from client (vulnerable to IDOR)
+  const userId = providedUserId || await getUserFromAuth(ctx);
+  ```
+- Test files:
+  - `convex/__tests__/subscriptions.idor.test.ts` - unit tests for IDOR prevention
+  - `e2e/subscription-idor.spec.ts` - E2E integration tests
 
 ## Game Icons (Issue #4)
 
