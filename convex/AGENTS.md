@@ -175,3 +175,35 @@ The following games are seeded in `seedGames.ts` (11 total):
   - `convex/__tests__/htmlUtils.test.ts` - unit tests for escaping functions
   - `convex/__tests__/alertNotification.xss.test.ts` - email template security tests
   - `e2e/email-template-security.spec.ts` - E2E integration tests
+
+## Security - Token Hashing (Issue #14)
+
+- CRITICAL: Never store security tokens (magic links, password resets, unsubscribe tokens) in plaintext
+- Pattern: Hash tokens using SHA-256 before storing, compare by hashing the provided token
+- The `hashToken()` function in `convex/lib/authUtils.ts` provides SHA-256 hashing via Web Crypto API
+- Why SHA-256 (not bcrypt):
+  - Tokens are already high-entropy (32 bytes from CSPRNG) - no need for slow hashing
+  - SHA-256 is fast and suitable for token comparison
+  - bcrypt is for low-entropy passwords that need slow hashing to resist brute-force
+- Schema changes:
+  - `magicLinkTokens.token` → `magicLinkTokens.tokenHash` with index `by_tokenHash`
+  - `passwordResetTokens.token` → `passwordResetTokens.tokenHash` with index `by_tokenHash`
+  - `alertSubscriptions.unsubscribeToken` → `alertSubscriptions.unsubscribeTokenHash` with index `by_unsubscribeTokenHash`
+- Token flow pattern:
+  1. Generate plaintext token: `const token = generateSecureToken(32)`
+  2. Hash for storage: `const tokenHash = await hashToken(token)`
+  3. Store hash in DB: `{ tokenHash, ... }`
+  4. Send plaintext token to user (in email link)
+  5. On verification: hash provided token and lookup by hash
+- Alert email token rotation:
+  - `regenerateUnsubscribeToken()` mutation generates fresh token before each email
+  - Returns plaintext for email while storing only hash
+  - Limits exposure window if token is compromised
+- Key security improvements:
+  - Database breach doesn't expose usable tokens
+  - Attacker would need to brute-force 256-bit tokens (computationally infeasible)
+  - Hash format is consistent for database indexing (64 hex chars)
+- Test files:
+  - `convex/__tests__/tokenHashing.test.ts` - unit tests for hashToken, security patterns
+  - `e2e/token-security.spec.ts` - E2E integration tests for token verification flows
+- Migration note: Existing plaintext tokens will not work after this change. Clear token tables or implement migration.

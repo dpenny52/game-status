@@ -194,3 +194,25 @@ export function isTokenExpired(
 ): boolean {
   return Date.now() - createdAt > expirationMs;
 }
+
+/**
+ * Hashes a token using SHA-256 for secure storage.
+ *
+ * Security rationale (Issue #14):
+ * - Tokens are stored as hashes in the database to prevent exposure
+ *   if the database is compromised
+ * - SHA-256 is used because tokens are already high-entropy (32 bytes)
+ *   so a fast hash is acceptable (unlike passwords which need slow hashes like bcrypt)
+ * - The original token is sent to users; the hash is stored in the database
+ * - Verification computes hash(providedToken) and compares to stored hash
+ *
+ * @param token - The plaintext token to hash
+ * @returns The SHA-256 hash of the token as a hex string
+ */
+export async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}

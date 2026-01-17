@@ -187,7 +187,8 @@ describe("Schema Integration", () => {
 
       expect(fields).not.toBeNull();
       expect(isIdReferenceToTable(fields!.userId, "users")).toBe(true);
-      expect(fields).toHaveProperty("token");
+      // Issue #14: tokens are now stored as hashes, not plaintext
+      expect(fields).toHaveProperty("tokenHash");
       expect(fields).toHaveProperty("expiresAt");
     });
 
@@ -196,7 +197,8 @@ describe("Schema Integration", () => {
 
       expect(fields).not.toBeNull();
       expect(fields).toHaveProperty("email");
-      expect(fields).toHaveProperty("token");
+      // Issue #14: tokens are now stored as hashes, not plaintext
+      expect(fields).toHaveProperty("tokenHash");
       expect(fields).toHaveProperty("expiresAt");
       expect(fields).toHaveProperty("isUsed");
     });

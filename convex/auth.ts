@@ -21,6 +21,7 @@ import {
   validateDisplayName,
   generateSecureToken,
   isTokenExpired,
+  hashToken,
   AUTH_CONSTANTS,
 } from "./lib/authUtils";
 
@@ -288,16 +289,19 @@ export const requestMagicLink = mutation({
     const token = generateSecureToken(32);
     const now = Date.now();
 
-    // Store magic link token
+    // Hash the token before storing (Issue #14: never store plaintext tokens)
+    const tokenHash = await hashToken(token);
+
+    // Store magic link token hash (plaintext token is sent to user via email)
     await ctx.db.insert("magicLinkTokens", {
       email: normalizedEmail,
-      token,
+      tokenHash,
       createdAt: now,
       expiresAt: now + AUTH_CONSTANTS.MAGIC_LINK_EXPIRATION_MS,
       isUsed: false,
     });
 
-    // In production: Send email with magic link
+    // In production: Send email with magic link containing the plaintext token
     // For now, return success (token would be in email)
     return { success: true, message: "Magic link sent to your email" };
   },
@@ -316,10 +320,13 @@ export const verifyMagicLink = mutation({
   handler: async (ctx, args) => {
     const { token } = args;
 
-    // Find token record
+    // Hash the provided token to look up the stored hash (Issue #14)
+    const tokenHash = await hashToken(token);
+
+    // Find token record by hash
     const tokenRecord = await ctx.db
       .query("magicLinkTokens")
-      .withIndex("by_token", (q) => q.eq("token", token))
+      .withIndex("by_tokenHash", (q) => q.eq("tokenHash", tokenHash))
       .first();
 
     if (!tokenRecord) {
@@ -405,16 +412,19 @@ export const requestPasswordReset = mutation({
       const token = generateSecureToken(32);
       const now = Date.now();
 
+      // Hash the token before storing (Issue #14: never store plaintext tokens)
+      const tokenHash = await hashToken(token);
+
       await ctx.db.insert("passwordResetTokens", {
         userId: user._id,
         email: normalizedEmail,
-        token,
+        tokenHash,
         createdAt: now,
         expiresAt: now + AUTH_CONSTANTS.PASSWORD_RESET_EXPIRATION_MS,
         isUsed: false,
       });
 
-      // In production: Send email with reset link
+      // In production: Send email with reset link containing the plaintext token
     }
 
     return {
@@ -439,10 +449,13 @@ export const resetPassword = mutation({
   handler: async (ctx, args) => {
     const { token, newPassword } = args;
 
-    // Find token record
+    // Hash the provided token to look up the stored hash (Issue #14)
+    const tokenHash = await hashToken(token);
+
+    // Find token record by hash
     const tokenRecord = await ctx.db
       .query("passwordResetTokens")
-      .withIndex("by_token", (q) => q.eq("token", token))
+      .withIndex("by_tokenHash", (q) => q.eq("tokenHash", tokenHash))
       .first();
 
     if (!tokenRecord) {
@@ -641,10 +654,13 @@ export const validatePasswordResetToken = query({
   handler: async (ctx, args) => {
     const { token } = args;
 
-    // Find token record by token value
+    // Hash the provided token to look up the stored hash (Issue #14)
+    const tokenHash = await hashToken(token);
+
+    // Find token record by hash
     const tokenRecord = await ctx.db
       .query("passwordResetTokens")
-      .withIndex("by_token", (q) => q.eq("token", token))
+      .withIndex("by_tokenHash", (q) => q.eq("tokenHash", tokenHash))
       .first();
 
     // Token not found

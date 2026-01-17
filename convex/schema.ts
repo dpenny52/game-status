@@ -251,16 +251,17 @@ export default defineSchema({
    *
    * @remarks
    * - Tokens should be securely generated (32+ bytes of randomness)
+   * - Tokens are stored as SHA-256 hashes to prevent exposure if database is compromised (Issue #14)
    * - Clean up expired tokens periodically
    *
-   * @index by_token - For token validation during authentication
+   * @index by_tokenHash - For token validation during authentication (hashed lookup)
    * @index by_email - For finding pending tokens for an email
    */
   magicLinkTokens: defineTable({
     /** Email address the token was sent to */
     email: v.string(),
-    /** Secure random token */
-    token: v.string(),
+    /** SHA-256 hash of the secure random token (Issue #14: never store plaintext) */
+    tokenHash: v.string(),
     /** Unix timestamp for creation */
     createdAt: v.number(),
     /** Unix timestamp for expiration */
@@ -268,7 +269,7 @@ export default defineSchema({
     /** Whether the token has been used */
     isUsed: v.boolean(),
   })
-    .index("by_token", ["token"])
+    .index("by_tokenHash", ["tokenHash"])
     .index("by_email", ["email"]),
 
   /**
@@ -279,9 +280,10 @@ export default defineSchema({
    *
    * @remarks
    * - Tokens should be securely generated (32+ bytes of randomness)
+   * - Tokens are stored as SHA-256 hashes to prevent exposure if database is compromised (Issue #14)
    * - Clean up expired tokens periodically
    *
-   * @index by_token - For token validation during password reset
+   * @index by_tokenHash - For token validation during password reset (hashed lookup)
    * @index by_userId - For finding pending reset tokens for a user
    */
   passwordResetTokens: defineTable({
@@ -289,8 +291,8 @@ export default defineSchema({
     userId: v.id("users"),
     /** Email address for the user */
     email: v.string(),
-    /** Secure random token */
-    token: v.string(),
+    /** SHA-256 hash of the secure random token (Issue #14: never store plaintext) */
+    tokenHash: v.string(),
     /** Unix timestamp for creation */
     createdAt: v.number(),
     /** Unix timestamp for expiration */
@@ -298,7 +300,7 @@ export default defineSchema({
     /** Whether the token has been used */
     isUsed: v.boolean(),
   })
-    .index("by_token", ["token"])
+    .index("by_tokenHash", ["tokenHash"])
     .index("by_userId", ["userId"]),
 
   /**
@@ -432,8 +434,9 @@ export default defineSchema({
    * Implementation enforces a 30-minute cooldown between alerts per subscription.
    *
    * ## Unsubscribe Token
-   * Each subscription has a unique `unsubscribeToken` for one-click email unsubscribe.
-   * Tokens are generated cryptographically and stored for validation.
+   * Each subscription has a unique unsubscribe token for one-click email unsubscribe.
+   * Tokens are generated cryptographically and stored as SHA-256 hashes (Issue #14).
+   * The plaintext token is sent in emails; the hash is stored in the database.
    *
    * ## Compound Uniqueness Constraint
    * The (userId, gameId, region) combination must be unique.
@@ -443,7 +446,7 @@ export default defineSchema({
    * @index by_userId_isActive - For notification processing (active subscriptions per user)
    * @index by_userId_gameId_region - For uniqueness enforcement
    * @index by_gameId_region - For alert processing (find all subscribers for a game+region)
-   * @index by_unsubscribeToken - For one-click unsubscribe validation
+   * @index by_unsubscribeTokenHash - For one-click unsubscribe validation (hashed lookup)
    */
   alertSubscriptions: defineTable({
     /** Foreign key to users table - references the subscriber */
@@ -456,8 +459,8 @@ export default defineSchema({
     isActive: v.boolean(),
     /** Unix timestamp of last alert sent - used for 30-minute cooldown (null for never sent) */
     lastAlertSentAt: v.optional(v.number()),
-    /** Secure token for one-click email unsubscribe */
-    unsubscribeToken: v.string(),
+    /** SHA-256 hash of the secure token for one-click email unsubscribe (Issue #14: never store plaintext) */
+    unsubscribeTokenHash: v.string(),
     /** Unix timestamp for subscription creation (auditing) */
     createdAt: v.number(),
   })
@@ -465,5 +468,5 @@ export default defineSchema({
     .index("by_userId_isActive", ["userId", "isActive"])
     .index("by_userId_gameId_region", ["userId", "gameId", "region"])
     .index("by_gameId_region", ["gameId", "region"])
-    .index("by_unsubscribeToken", ["unsubscribeToken"]),
+    .index("by_unsubscribeTokenHash", ["unsubscribeTokenHash"]),
 });

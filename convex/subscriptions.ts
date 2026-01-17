@@ -13,7 +13,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
-import { generateSecureToken } from "./lib/authUtils";
+import { generateSecureToken, hashToken } from "./lib/authUtils";
 
 /**
  * Region type for subscriptions.
@@ -28,9 +28,15 @@ const ALL_REGIONS: Region[] = ["na", "eu", "asia", "oce", "global"];
 /**
  * Generate a cryptographically secure random token for unsubscribe links.
  * Uses crypto.getRandomValues() via the shared generateSecureToken utility.
+ * Returns both the plaintext token (for email) and the hash (for storage).
+ *
+ * Issue #14: Tokens are stored as SHA-256 hashes to prevent exposure
+ * if the database is compromised.
  */
-function generateUnsubscribeToken(): string {
-  return generateSecureToken(32);
+async function generateUnsubscribeTokenWithHash(): Promise<{ token: string; tokenHash: string }> {
+  const token = generateSecureToken(32);
+  const tokenHash = await hashToken(token);
+  return { token, tokenHash };
 }
 
 /**
@@ -123,13 +129,14 @@ export const upsertSubscription = mutation({
           await ctx.db.patch(existing._id as Id<"alertSubscriptions">, { isActive: true });
         }
       } else {
-        // Create new subscription
+        // Create new subscription with hashed unsubscribe token (Issue #14)
+        const { tokenHash } = await generateUnsubscribeTokenWithHash();
         await ctx.db.insert("alertSubscriptions", {
           userId,
           gameId,
           region: region as "na" | "eu" | "asia" | "oce" | "global",
           isActive: true,
-          unsubscribeToken: generateUnsubscribeToken(),
+          unsubscribeTokenHash: tokenHash,
           createdAt: Date.now(),
         });
       }

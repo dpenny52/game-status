@@ -12,7 +12,7 @@ import { v } from "convex/values";
 import { regionValidator } from "./schema";
 import type { Id } from "./_generated/dataModel";
 import type { Region } from "./schema";
-import { generateSecureToken } from "./lib/authUtils";
+import { generateSecureToken, hashToken } from "./lib/authUtils";
 import { escapeHtml, sanitizeUrl } from "./lib/htmlUtils";
 import { internal } from "./_generated/api";
 
@@ -107,7 +107,43 @@ export const updateLastAlertSent = internalMutation({
 });
 
 /**
+ * Regenerates the unsubscribe token for a subscription.
+ * Called before sending an alert email to provide a fresh unsubscribe link.
+ *
+ * Issue #14: Returns the plaintext token for email inclusion while storing
+ * only the hash in the database. This also rotates tokens with each email,
+ * limiting the window of exposure if a token is compromised.
+ */
+export const regenerateUnsubscribeToken = internalMutation({
+  args: {
+    subscriptionId: v.id("alertSubscriptions"),
+  },
+  handler: async (ctx, { subscriptionId }) => {
+    const subscription = await ctx.db.get(subscriptionId);
+    if (!subscription) {
+      throw new Error("Subscription not found");
+    }
+
+    // Generate new token and hash (Issue #14)
+    const unsubscribeToken = generateSecureToken(32);
+    const unsubscribeTokenHash = await hashToken(unsubscribeToken);
+
+    // Update subscription with new hash
+    await ctx.db.patch(subscriptionId, {
+      unsubscribeTokenHash,
+    });
+
+    // Return plaintext token for email
+    return { unsubscribeToken };
+  },
+});
+
+/**
  * Creates a new alert subscription with a generated unsubscribe token.
+ * Returns both the subscription ID and the plaintext token for email sending.
+ *
+ * Issue #14: The token is stored as a SHA-256 hash; the plaintext is returned
+ * for inclusion in email unsubscribe links.
  */
 export const createSubscription = internalMutation({
   args: {
@@ -130,35 +166,43 @@ export const createSubscription = internalMutation({
       throw new Error("Subscription already exists for this game and region");
     }
 
-    // Generate unique unsubscribe token
+    // Generate unique unsubscribe token and hash it (Issue #14)
     const unsubscribeToken = generateSecureToken(32);
+    const unsubscribeTokenHash = await hashToken(unsubscribeToken);
 
-    // Create subscription
+    // Create subscription with hashed token
     const subscriptionId = await ctx.db.insert("alertSubscriptions", {
       userId,
       gameId,
       region,
       isActive: true,
-      unsubscribeToken,
+      unsubscribeTokenHash,
       createdAt: Date.now(),
     });
 
-    return subscriptionId;
+    // Return both ID and plaintext token (token is needed for email links)
+    return { subscriptionId, unsubscribeToken };
   },
 });
 
 /**
  * Deactivates a subscription using the unsubscribe token.
  * Used by the one-click unsubscribe endpoint.
+ *
+ * Issue #14: The provided plaintext token is hashed before lookup,
+ * as only hashes are stored in the database.
  */
 export const deactivateByToken = internalMutation({
   args: {
     token: v.string(),
   },
   handler: async (ctx, { token }) => {
+    // Hash the provided token to look up the stored hash (Issue #14)
+    const tokenHash = await hashToken(token);
+
     const subscription = await ctx.db
       .query("alertSubscriptions")
-      .withIndex("by_unsubscribeToken", (q) => q.eq("unsubscribeToken", token))
+      .withIndex("by_unsubscribeTokenHash", (q) => q.eq("unsubscribeTokenHash", tokenHash))
       .first();
 
     if (!subscription) {
@@ -227,7 +271,8 @@ export const deleteSubscription = internalMutation({
  * This internal action:
  * 1. Queries all active subscriptions for the game+region
  * 2. Filters out subscriptions within the 30-minute cooldown window
- * 3. Dispatches email sending for each eligible subscription
+ * 3. Regenerates unsubscribe tokens for each subscription (Issue #14)
+ * 4. Dispatches email sending for each eligible subscription
  */
 export const processAlerts = internalAction({
   args: {
@@ -265,13 +310,20 @@ export const processAlerts = internalAction({
         continue;
       }
 
-      // Schedule email sending
+      // Regenerate unsubscribe token for this email (Issue #14: rotate tokens)
+      // This returns a fresh plaintext token while storing only the hash
+      const { unsubscribeToken } = await ctx.runMutation(
+        internal.alertNotifications.regenerateUnsubscribeToken,
+        { subscriptionId: subscription._id as Id<"alertSubscriptions"> }
+      );
+
+      // Schedule email sending with the fresh plaintext token
       await ctx.scheduler.runAfter(0, internal.alertNotifications.sendAlertEmail, {
         subscriptionId: subscription._id as Id<"alertSubscriptions">,
         userEmail: user.email as string,
         gameName: game.displayName as string,
         region,
-        unsubscribeToken: subscription.unsubscribeToken as string,
+        unsubscribeToken,
         attemptNumber: 0,
       });
     }

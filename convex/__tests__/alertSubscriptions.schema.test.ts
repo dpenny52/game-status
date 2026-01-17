@@ -85,30 +85,31 @@ describe("Alert Subscriptions Schema - Region Support", () => {
     expect(isOptionalValidator(lastAlertValidator)).toBe(true);
   });
 
-  it("should have unsubscribeToken field as required string", () => {
+  it("should have unsubscribeTokenHash field as required string (Issue #14: tokens stored as hashes)", () => {
     const fields = getTableFields("alertSubscriptions");
 
     expect(fields).not.toBeNull();
-    expect(fields).toHaveProperty("unsubscribeToken");
+    // Issue #14: tokens are now stored as SHA-256 hashes, not plaintext
+    expect(fields).toHaveProperty("unsubscribeTokenHash");
 
-    // unsubscribeToken should be a string
-    const tokenValidator = fields!.unsubscribeToken;
+    // unsubscribeTokenHash should be a string
+    const tokenValidator = fields!.unsubscribeTokenHash;
     expect(tokenValidator).toBeDefined();
     expect(isValidatorKind(tokenValidator, "string")).toBe(true);
   });
 
-  it("should have index on unsubscribeToken for fast lookups", () => {
+  it("should have index on unsubscribeTokenHash for fast lookups (Issue #14)", () => {
     const indexes = getTableIndexes("alertSubscriptions");
 
     expect(indexes).not.toBeNull();
 
-    // Check for unsubscribeToken index
+    // Check for unsubscribeTokenHash index (Issue #14: lookup by hash)
     const tokenIndex = indexes!.find(
-      (idx) => idx.indexDescriptor === "by_unsubscribeToken" ||
-        (idx.fields.length === 1 && idx.fields[0] === "unsubscribeToken")
+      (idx) => idx.indexDescriptor === "by_unsubscribeTokenHash" ||
+        (idx.fields.length === 1 && idx.fields[0] === "unsubscribeTokenHash")
     );
     expect(tokenIndex).toBeDefined();
-    expect(tokenIndex!.fields).toContain("unsubscribeToken");
+    expect(tokenIndex!.fields).toContain("unsubscribeTokenHash");
   });
 
   it("should have index on (gameId, region) for alert processing queries", () => {
