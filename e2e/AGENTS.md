@@ -255,3 +255,31 @@ For faster feedback during development, use unit tests in `convex/__tests__/pass
 - Tests bcrypt hash format and salt uniqueness
 - Tests constant-time comparison properties
 - Tests vulnerability regression (no SHA-256, no hardcoded salt)
+
+## HTTP XSS Security Tests (Issue #12)
+
+### Test File
+`http-xss-security.spec.ts` - Tests for XSS prevention in HTTP HTML generation
+
+### Security Fix Details
+- The `generateHtmlPage()` function in `convex/http.ts` now escapes all dynamic content
+- `escapeHtml()` sanitizes title and message parameters before HTML insertion
+- 5 HTML special characters are escaped: `&`, `<`, `>`, `"`, `'`
+
+### Key Test Patterns
+- Tests navigate to `/api/unsubscribe` endpoint and verify HTML safety
+- Tests verify no script execution occurs with malicious payloads
+- Tests check page structure prevents attribute injection
+- Tests verify SVG icons don't contain malicious event handlers
+
+### Test Requirements
+- E2E tests can run without Convex backend (tests HTTP response HTML safety)
+- Start dev server with `npm run dev` before running tests
+- Tests verify static HTML properties, not Convex data
+
+### Unit Tests
+For faster feedback, use unit tests in `convex/__tests__/http.xss.test.ts`:
+- Tests `escapeHtml()` function with all HTML special characters
+- Tests XSS attack vectors (script tags, event handlers, javascript: protocol)
+- Tests `generateHtmlPage()` escapes title and message parameters
+- Tests edge cases (long strings, unicode, empty strings)

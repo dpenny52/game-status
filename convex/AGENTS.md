@@ -126,3 +126,23 @@ The following games are seeded in `seedGames.ts` (11 total):
   - Consider adding migration logic or password reset prompt for existing users
 - Test file: `convex/__tests__/passwordHashing.test.ts` - covers bcrypt format, timing attacks, salt uniqueness
 - E2E tests: `e2e/password-security.spec.ts` - integration tests for signup/login flows with bcrypt
+
+## Security - XSS Prevention in HTML Generation (Issue #12)
+
+- CRITICAL: Always escape user input before inserting into HTML templates
+- Pattern: Use `escapeHtml()` function to sanitize all dynamic content in HTML responses
+- The `escapeHtml()` function in `http.ts` escapes 5 HTML special characters:
+  - `&` → `&amp;` (prevents HTML entity injection)
+  - `<` → `&lt;` (prevents tag injection)
+  - `>` → `&gt;` (prevents tag closing/injection)
+  - `"` → `&quot;` (prevents attribute breakout with double quotes)
+  - `'` → `&#039;` (prevents attribute breakout with single quotes)
+- The `generateHtmlPage()` function now applies escaping to title and message parameters
+- Key security improvements:
+  - Prevents reflected XSS through URL parameters
+  - Prevents stored XSS through database content
+  - Neutralizes event handler injection (onerror, onclick, onload, etc.)
+  - Prevents HTML attribute injection and breakout
+- Export pattern: Functions are exported for unit testing (`export function escapeHtml`)
+- Test file: `convex/__tests__/http.xss.test.ts` - covers escaping, attack vectors, edge cases
+- E2E tests: `e2e/http-xss-security.spec.ts` - integration tests for unsubscribe endpoint security

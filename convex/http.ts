@@ -97,14 +97,35 @@ http.route({
 });
 
 /**
+ * Escapes HTML special characters to prevent XSS attacks.
+ *
+ * @param text - The text to escape
+ * @returns The escaped text safe for HTML insertion
+ */
+export function escapeHtml(text: string): string {
+  const htmlEscapeMap: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEscapeMap[char]);
+}
+
+/**
  * Generates an HTML page for unsubscribe responses.
+ * All dynamic content is escaped to prevent XSS attacks.
  *
  * @param title - Page title
  * @param message - Message to display
  * @param success - Whether the operation was successful
  * @returns HTML string
  */
-function generateHtmlPage(title: string, message: string, success: boolean): string {
+export function generateHtmlPage(title: string, message: string, success: boolean): string {
+  // Escape all dynamic content to prevent XSS
+  const safeTitle = escapeHtml(title);
+  const safeMessage = escapeHtml(message);
   const iconColor = success ? "#10b981" : "#ef4444";
   const icon = success
     ? `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2">
@@ -123,7 +144,7 @@ function generateHtmlPage(title: string, message: string, success: boolean): str
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${title} - GameStatus</title>
+      <title>${safeTitle} - GameStatus</title>
       <style>
         * {
           margin: 0;
@@ -180,8 +201,8 @@ function generateHtmlPage(title: string, message: string, success: boolean): str
     <body>
       <div class="container">
         <div class="icon">${icon}</div>
-        <h1>${title}</h1>
-        <p>${message}</p>
+        <h1>${safeTitle}</h1>
+        <p>${safeMessage}</p>
         <a href="/" class="back-link">Go to Dashboard</a>
       </div>
     </body>
