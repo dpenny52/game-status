@@ -209,8 +209,8 @@ export const toggleSubscriptionActive = mutation({
       throw new Error("Subscription not found");
     }
 
-    // Verify ownership
-    if (String(subscription.userId) !== String(userId)) {
+    // Verify ownership (Issue #18: Use direct ID comparison instead of string)
+    if (subscription.userId !== userId) {
       throw new Error("Not authorized to modify this subscription");
     }
 
@@ -268,8 +268,8 @@ export const deleteSubscription = mutation({
       throw new Error("Subscription not found");
     }
 
-    // Verify ownership
-    if (String(subscription.userId) !== String(userId)) {
+    // Verify ownership (Issue #18: Use direct ID comparison instead of string)
+    if (subscription.userId !== userId) {
       throw new Error("Not authorized to delete this subscription");
     }
 

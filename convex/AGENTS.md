@@ -236,3 +236,23 @@ The following games are seeded in `seedGames.ts` (11 total):
   - `convex/__tests__/tokenHashing.test.ts` - unit tests for hashToken, security patterns
   - `e2e/token-security.spec.ts` - E2E integration tests for token verification flows
 - Migration note: Existing plaintext tokens will not work after this change. Clear token tables or implement migration.
+
+## Security - Type-Safe ID Comparison (Issue #18)
+
+- CRITICAL: Always use direct ID comparison (`===`/`!==`) instead of String() conversion
+- Pattern: `subscription.userId !== userId` NOT `String(subscription.userId) !== String(userId)`
+- The issue with String() conversion:
+  - Type coercion could produce unexpected results with mixed types
+  - Potential for formatting differences causing false matches/mismatches
+  - Opaque Convex IDs should be compared directly for type safety
+- Fix applied to `subscriptions.ts`:
+  - Line 213: `toggleSubscriptionActive` ownership check
+  - Line 272: `deleteSubscription` ownership check
+- Key security improvements:
+  - Type safety preserved - TypeScript catches type mismatches at compile time
+  - No risk of type coercion attacks
+  - Consistent with Convex ID handling patterns
+  - Cleaner, more maintainable code
+- Test files:
+  - `convex/__tests__/subscriptions.idComparison.test.ts` - unit tests for type-safe comparison
+  - `e2e/subscription-id-comparison.spec.ts` - E2E integration tests

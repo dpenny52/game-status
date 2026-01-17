@@ -283,3 +283,25 @@ For faster feedback, use unit tests in `convex/__tests__/http.xss.test.ts`:
 - Tests XSS attack vectors (script tags, event handlers, javascript: protocol)
 - Tests `generateHtmlPage()` escapes title and message parameters
 - Tests edge cases (long strings, unicode, empty strings)
+
+## Type-Safe ID Comparison Tests (Issue #18)
+
+### Test File
+`subscription-id-comparison.spec.ts` - Tests for type-safe ID comparison in ownership checks
+
+### Security Fix Details
+- Ownership checks in `toggleSubscriptionActive` and `deleteSubscription` now use direct ID comparison
+- Changed from `String(subscription.userId) !== String(userId)` to `subscription.userId !== userId`
+- Direct comparison prevents type coercion attacks and maintains type safety
+
+### Key Test Patterns
+- Tests verify subscription creation/modification works for authenticated users
+- Tests verify user isolation - users can only modify their own subscriptions
+- Tests document the fix locations and security improvements
+- Tests skip gracefully when Convex backend isn't available
+
+### Unit Tests
+For faster feedback, use unit tests in `convex/__tests__/subscriptions.idComparison.test.ts`:
+- Tests direct ID comparison for ownership verification
+- Tests type coercion edge cases
+- Tests Convex-style ID comparison
