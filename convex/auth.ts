@@ -14,6 +14,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import bcrypt from "bcryptjs";
 import {
   validatePassword,
   isValidEmail,
@@ -138,8 +139,7 @@ export const signUp = mutation({
       updatedAt: now,
     });
 
-    // Store password hash in authCredentials table
-    // Note: In production, use proper password hashing (bcrypt, argon2)
+    // Store password hash in authCredentials table using bcrypt
     await ctx.db.insert("authCredentials", {
       userId,
       passwordHash: await hashPassword(password),
@@ -668,31 +668,41 @@ export const validatePasswordResetToken = query({
   },
 });
 
-// Helper functions for password hashing
-// Note: In production, use proper libraries like bcrypt or argon2
+// Password hashing configuration
+// Cost factor 12 provides ~250ms hash time, balancing security and performance
+// See: OWASP Password Storage Cheat Sheet
+const BCRYPT_COST_FACTOR = 12;
 
 /**
- * Hash a password for storage.
- * Note: This is a simplified implementation. Use bcrypt/argon2 in production.
+ * Hash a password for storage using bcrypt.
+ *
+ * Uses bcrypt with a cost factor of 12, which provides strong protection
+ * against brute-force attacks while maintaining acceptable performance.
+ * Bcrypt automatically generates a unique salt for each password.
+ *
+ * @param password - The plaintext password to hash
+ * @returns The bcrypt hash string (includes salt and cost factor)
  */
 async function hashPassword(password: string): Promise<string> {
-  // In production, use bcrypt or argon2
-  // For now, use a simple hash (NOT SECURE FOR PRODUCTION)
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "gamestatus_salt_key");
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const salt = await bcrypt.genSalt(BCRYPT_COST_FACTOR);
+  return bcrypt.hash(password, salt);
 }
 
 /**
- * Verify a password against a stored hash.
- * Note: This is a simplified implementation. Use bcrypt/argon2 in production.
+ * Verify a password against a stored bcrypt hash.
+ *
+ * Uses bcrypt.compare which performs constant-time comparison
+ * to prevent timing attacks. The salt is extracted from the hash
+ * automatically by bcrypt.
+ *
+ * @param password - The plaintext password to verify
+ * @param hash - The stored bcrypt hash
+ * @returns True if the password matches, false otherwise
  */
 async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
+  // bcrypt.compare performs constant-time comparison internally
+  return bcrypt.compare(password, hash);
 }

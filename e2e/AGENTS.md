@@ -228,3 +228,30 @@ if (cardCount > 0) {
 - Tests verify subscription creation/deletion flows work with secure tokens
 - Tests skip gracefully when Convex backend isn't available
 - Unit tests in `convex/__tests__/secureToken.test.ts` verify cryptographic properties
+
+## Password Security Tests (Issue #8)
+
+### Test File
+`password-security.spec.ts` - Tests for bcrypt password hashing implementation
+
+### Security Fix Details
+- Password hashing now uses bcrypt with cost factor 12 instead of SHA-256 with hardcoded salt
+- Each password gets a unique salt embedded in the bcrypt hash
+- bcrypt.compare() provides constant-time comparison (prevents timing attacks)
+
+### Key Test Patterns
+- Signup flow tests verify bcrypt doesn't break authentication
+- Tests verify password hash is never exposed to client (not in localStorage)
+- Tests verify special characters and unicode in passwords work correctly
+- Login rejection tests ensure incorrect passwords fail validation
+
+### Test Requirements
+- E2E tests require the dev server running with Convex backend
+- Start with `npm run dev` before running `npx playwright test e2e/password-security.spec.ts`
+- Tests will timeout if server isn't running (default 120s webServer timeout)
+
+### Unit Tests
+For faster feedback during development, use unit tests in `convex/__tests__/passwordHashing.test.ts`:
+- Tests bcrypt hash format and salt uniqueness
+- Tests constant-time comparison properties
+- Tests vulnerability regression (no SHA-256, no hardcoded salt)

@@ -105,3 +105,24 @@ The following games are seeded in `seedGames.ts` (11 total):
   - Hex-encoded output is URL-safe without additional encoding
 - Test file: `convex/__tests__/secureToken.test.ts` - covers entropy, uniqueness, Math.random exclusion
 - E2E tests: `e2e/subscription-security.spec.ts` - integration tests for secure subscription flows
+
+## Security - Bcrypt Password Hashing (Issue #8)
+
+- CRITICAL: Never use SHA-256 with static salt for password hashing - it's fast and vulnerable to brute-force
+- Pattern: Use bcrypt with cost factor 12 for password hashing
+- The `hashPassword()` and `verifyPassword()` functions in `auth.ts` now use `bcryptjs` package
+- Key security improvements:
+  - Unique salt per password (embedded in bcrypt hash format)
+  - Cost factor 12 provides ~250ms hash time, resistant to GPU cracking
+  - bcrypt.compare() uses constant-time comparison (prevents timing attacks)
+  - Hash format: `$2a$12$<22-char-salt><31-char-hash>` (60 chars total)
+- Bcrypt configuration:
+  - `npm install bcryptjs @types/bcryptjs` - pure JavaScript implementation works in Convex runtime
+  - Cost factor stored as constant `BCRYPT_COST_FACTOR = 12` in auth.ts
+  - Salt generation: `bcrypt.genSalt(BCRYPT_COST_FACTOR)` per password
+- Migration notes:
+  - Existing SHA-256 hashes are incompatible with bcrypt
+  - Users with old hashes must reset their passwords
+  - Consider adding migration logic or password reset prompt for existing users
+- Test file: `convex/__tests__/passwordHashing.test.ts` - covers bcrypt format, timing attacks, salt uniqueness
+- E2E tests: `e2e/password-security.spec.ts` - integration tests for signup/login flows with bcrypt
